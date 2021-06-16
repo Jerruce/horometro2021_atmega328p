@@ -43,7 +43,7 @@ int main(void)
 /* Interrupt Service Routines (ISRs) */
 
 
-/* Timer0 Interrupt every 1ms */
+/* Timer0 Interrupts every 1ms */
 ISR(TIMER0_COMPA_vect){
 		
 	/* Measure the instant current value every 1ms */
