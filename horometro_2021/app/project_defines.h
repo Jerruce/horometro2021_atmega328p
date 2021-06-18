@@ -142,20 +142,18 @@
 #define BATTERY_LEVEL_MED								1
 #define BATTERY_LEVEL_HIGH								2
 
+
+// -------------------- Sequence states ----------------------
+#define SEQUENCE_IN_PROCESS								0
+#define SEQUENCE_COMPLETE								1
+
 // ---------------------- System modes -----------------------
 
-#define VIBRATION_SENSOR_CALIBRATION_MODE				0	
-#define VIBRATION_SENSOR_ONLY_MODE						1
-#define VIBRATION_CURRENT_SENSOR_MODE					2
-#define VIBRATION_PICKUP_SENSOR_MODE					3
-#define VIBRATION_CURRENT_PICKUP_SENSOR_MODE			4
+#define VIBRATION_SENSOR_ONLY_MODE						0
+#define VIBRATION_CURRENT_PICKUP_SENSOR_MODE			1
+#define VIBRATION_SENSOR_CALIBRATION_MODE				2	
 
-// ---------------------- SPI commands ------------------------
-
-#define ESP32_WIFI_ENABLE_CMD			'W'
-#define ESP32_WIFI_DISABLE_CMD			'w'
-
-/* System flags */
+/* ---------------------- System flags ------------------------ */
 #define MAG_PICKUP_TIMEOUT_FLAG			 0
 #define MAG_PICKUP_TOO_FAST_FLAG		 1
 #define ONE_SECOND_ELAPSED_FLAG			 2
@@ -163,7 +161,9 @@
 #define CURRENT_SENSE_FLAG				 4
 #define VIBRATION_SENSE_FLAG			 5	
 #define WIFI_COMM_EN_FLAG				 6
+#define ESP32_COMM_CHECK_FLAG			 7	
 
 #define SERIAL_MSG_FLAG					 15
+
 
 #endif /* PROJECT_DEFINES_H_ */

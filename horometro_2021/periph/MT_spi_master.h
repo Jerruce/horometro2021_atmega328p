@@ -19,22 +19,22 @@
 // Definición de pines
 
 #define DDR_MOSI0		DDRB
-#define MOSI0			5
+#define MOSI0			3
 #define DDR_MISO0		DDRB
-#define MISO0			6
+#define MISO0			4
 #define DDR_SCK0		DDRB
-#define SCK0			7
+#define SCK0			5
 #define DDR_SS0			DDRB
-#define SS0				4
+#define SS0				2
 
 #define DDR_MOSI1		DDRE
 #define MOSI1			3
-#define DDR_MISO1		DDRE
-#define MISO1			2
-#define DDR_SCK1		DDRD
-#define SCK1			7
-#define DDR_SS1			DDRD
-#define SS1				6
+#define DDR_MISO1		DDRC
+#define MISO1			0
+#define DDR_SCK1		DDRC
+#define SCK1			1
+#define DDR_SS1			DDRE
+#define SS1				2
 
 
 // Tamaño de los buffers de transmmisión y recepción
@@ -93,8 +93,8 @@ typedef struct{
 
 
 /* Declaración de variables globales */
-extern volatile uint8_t spi_tx_buffer[];
-extern volatile uint8_t spi_rx_buffer[];
+//extern volatile uint8_t spi_tx_buffer[];
+//extern volatile uint8_t spi_rx_buffer[];
 
 /* Declaración de funciones (prototipos) */
 void SPI0_Configurar(spi_config_t *spi_param);

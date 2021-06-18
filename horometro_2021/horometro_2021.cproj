@@ -153,6 +153,12 @@
     <Compile Include="app\current_sense.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="app\esp32_comm_interface.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="app\esp32_comm_interface.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="app\global.h">
       <SubType>compile</SubType>
     </Compile>

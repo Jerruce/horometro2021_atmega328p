@@ -71,6 +71,8 @@ ISR(TIMER2_COMPA_vect){
 	
 	static uint8_t counter_1_div_32_sec = 0;
 	
+	system_flags |= (1 << ESP32_COMM_CHECK_FLAG);
+	
 	/* Read the vibration sensor every 1/32 sec (31.25ms) */
 	system_flags |= (1 << VIBRATION_SENSE_FLAG);
 	

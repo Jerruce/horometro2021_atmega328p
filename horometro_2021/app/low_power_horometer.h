@@ -19,13 +19,14 @@
 #include <util/delay.h>
 #include "global.h"
 #include "mt_debounce.h"
+#include "MT_adc.h"
 #include "MT_software_rtc.h"
 #include "MT_magnetic_pickup.h"
 #include "piezoelectric_sensor.h"
 #include "current_sense.h"
 #include "battery_level_sense.h"
-#include "MT_adc.h"
 #include "psu_sw_manager.h"
+#include "esp32_comm_interface.h"
 
 #include "system_test.h"
 
@@ -47,9 +48,9 @@ void System_Mode_Load(void);
 void System_Sequence(void);
 void Vibration_Sense_Calibration_Sequence(void);
 void Vibration_Sense_Only_Sequence(void);
-void Vibration_Sense_And_Current_Sense_Sequence(void);
-void Vibration_Sense_And_Motor_Speed_Sequence(void);
 void Vibration_Sense_Current_Sense_And_Motor_Speed_Sequence(void); 
 void Wifi_Connection_Sequence(void); 
+
+uint8_t ESP32_Operation_Mode_And_Display_Update(void);
 
 #endif /* LOW_POWER_HOROMETER_H_ */

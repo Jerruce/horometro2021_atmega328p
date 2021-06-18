@@ -12,8 +12,9 @@
 
 /* Variable defintion */
 volatile uint16_t system_flags = 0;
-volatile uint8_t system_mode = VIBRATION_SENSOR_ONLY_MODE;
-volatile uint8_t stored_system_mode = VIBRATION_SENSOR_ONLY_MODE;
+static uint8_t system_mode = VIBRATION_SENSOR_ONLY_MODE;
+static uint8_t stored_system_mode = VIBRATION_SENSOR_ONLY_MODE;
+static uint32_t esp32_time_counter = 0;
 
 
 /* Function definition */
@@ -38,6 +39,7 @@ void System_Initialize(void){
 	LEDs_Initialize();
 	Soft_RTC_Initialize();
 	ADC_Initialize();
+	ESP32_Comm_Interface_Initialize();
 	Timer0_Initialize();
 	Timer2_Initialize();
 	Piezoelectric_Sensor_Initialize();
@@ -192,25 +194,17 @@ void System_Sequence(void){
 	
 	switch(system_mode){
 		
-		case VIBRATION_SENSOR_CALIBRATION_MODE:
-			Vibration_Sense_Calibration_Sequence();
-			break;
-		
 		case VIBRATION_SENSOR_ONLY_MODE:
 			Vibration_Sense_Only_Sequence();
-			break;
-			
-		case VIBRATION_CURRENT_SENSOR_MODE:
-			Vibration_Sense_And_Current_Sense_Sequence();
-			break;
-			
-		case VIBRATION_PICKUP_SENSOR_MODE:
-			Vibration_Sense_And_Motor_Speed_Sequence();
 			break;
 			
 		case VIBRATION_CURRENT_PICKUP_SENSOR_MODE:
 			Vibration_Sense_Current_Sense_And_Motor_Speed_Sequence();
 			break;
+			
+		case VIBRATION_SENSOR_CALIBRATION_MODE:
+			Vibration_Sense_Calibration_Sequence();
+		break;			
 			
 		default:
 			break;				
@@ -244,13 +238,6 @@ void Vibration_Sense_Calibration_Sequence(void){
 		/* Wait until the power supply sets up */
 		_delay_ms(PSU_SW_WAIT_PERIOD_MS);
 	
-		cli();
-		/* Clear the INT0 flag */
-		EIFR |= (1 << INTF0);
-		sei();
-				
-		/* Reset the calibration counter */
-		Calib_Time_Reset();
 		/* Start with the LED off */
 		PORT_ACCEL_SENSING_LED &= ~(1 << ACCEL_SENSING_LED);
 		
@@ -258,7 +245,31 @@ void Vibration_Sense_Calibration_Sequence(void){
 	 	
 		break;
 		
-	case 1:	
+	case 1:
+	
+		if(system_flags & (1 << ESP32_COMM_CHECK_FLAG)){
+			
+			cli();
+			system_flags &= ~(1 << ESP32_COMM_CHECK_FLAG);
+			sei();
+			
+			if(ESP32_Operation_Mode_And_Display_Update() == SEQUENCE_COMPLETE){
+	
+				cli();
+				/* Clear the INT0 flag */
+				EIFR |= (1 << INTF0);
+				sei();
+			
+				/* Reset the calibration counter */
+				Calib_Time_Reset();
+			
+				sequence_state++;		
+			}		
+		}
+	
+		break;
+	
+	case 2:	
 
 		/* Ignore current sensor */
 		if(system_flags & (1 << CURRENT_SENSE_FLAG)){
@@ -301,7 +312,7 @@ void Vibration_Sense_Calibration_Sequence(void){
 		
 		break;
 	
-	case 2:	
+	case 3:	
 	
 		/* Turn-off calibration LED */
 		PORT_ACCEL_SENSING_LED &= ~(1 << ACCEL_SENSING_LED);
@@ -334,17 +345,34 @@ void Vibration_Sense_Only_Sequence(void){
 		Piezoelectric_Circuit_PSU_On();
 		/* Wait until the power supply sets up and reset the calibration counter */
 		_delay_ms(PSU_SW_WAIT_PERIOD_MS);
-			
-		cli();
-		/* Clear the INT0 flag */
-		EIFR |= (1 << INTF0);
-		sei();
-						
+									
 		sequence_state++;
 			
 		break;	
-		
+
 	case 1:
+	
+		if(system_flags & (1 << ESP32_COMM_CHECK_FLAG)){
+		
+			cli();
+			system_flags &= ~(1 << ESP32_COMM_CHECK_FLAG);
+			sei();
+		
+			if(ESP32_Operation_Mode_And_Display_Update() == SEQUENCE_COMPLETE){
+			
+				cli();
+				/* Clear the INT0 flag */
+				EIFR |= (1 << INTF0);
+				sei();
+						
+				sequence_state++;
+			}
+		}
+	
+		break;
+
+		
+	case 2:
 
 		/* Ignore current sensor */
 		if(system_flags & (1 << CURRENT_SENSE_FLAG)){
@@ -402,7 +430,7 @@ void Vibration_Sense_Only_Sequence(void){
 	
 		break;
 		
-	case 2:
+	case 3:
 	
 		/* Save current state and go to testing mode */
 		System_Mode_Save();
@@ -411,10 +439,10 @@ void Vibration_Sense_Only_Sequence(void){
 	
 		break;	
 		
-	case 3:
+	case 4:
 	
 		/* Go to Vibration + Current Mode */
-		system_mode = VIBRATION_CURRENT_SENSOR_MODE;	
+		system_mode = VIBRATION_CURRENT_PICKUP_SENSOR_MODE;	
 		sequence_state = 0;
 	
 		break;
@@ -427,259 +455,6 @@ void Vibration_Sense_Only_Sequence(void){
 	
 }
 
-
-
-void Vibration_Sense_And_Current_Sense_Sequence(void){
-
-	static uint8_t sequence_state = 0;
-	static uint8_t current_sense_sample_counter = 0;
-	
-	switch(sequence_state){
-		
-	case 0:
-		/* Enable the vibration sensor */
-		General_Power_Supply_Circuit_On();
-		Piezoelectric_Circuit_PSU_On();
-		Current_Sense_Circuit_PSU_On();
-		/* Wait until the power supply sets up and reset the calibration counter */
-		_delay_ms(PSU_SW_WAIT_PERIOD_MS);
-		
-		cli();
-		/* Clear the INT0 flag */
-		EIFR |= (1 << INTF0);
-		/* Prepare for current measurement */
-		Timer0_Interrupt_Enable();
-		current_sense_sample_counter = 0;		
-		sei();
-		
-		sequence_state++;
-		
-		break;
-		
-	case 1:
-
-		/* Read current sensor */
-		if(system_flags & (1 << CURRENT_SENSE_FLAG)){
-			cli();
-			system_flags &= ~(1 << CURRENT_SENSE_FLAG);
-			sei();
-			
-			Current_Measure();
-			current_sense_sample_counter++;
-			if(current_sense_sample_counter >= CURRENT_RMS_CALC_N_SAMPLES){
-				current_sense_sample_counter = 0;
-				RMS_Current_Calculate();
-				Peak_Current_Reset();
-			}
-		}
-		
-		/* Read vibration sensor (piezoelectric) */
-		if(system_flags & (1 << VIBRATION_SENSE_FLAG)){
-			
-			cli();
-			system_flags &= ~(1 << VIBRATION_SENSE_FLAG);
-			sei();
-			
-			Working_Time_Count_Update();
-		}
-
-		/* Read DIP switch and buttons */
-		if(system_flags & (1 << BUTTON_READ_FLAG)){
-			
-			cli();
-			system_flags &= ~(1 << BUTTON_READ_FLAG);
-			sei();
-			
-			if(!(system_flags & (1 << WIFI_COMM_EN_FLAG))){
-				
-				if(g1_button_state & (1 << DIP_SW_CALIB_MODE)){
-					sequence_state = 2;
-				}else if(G1_Get_Button_Press(1 << MODE_BUTTON)){
-					sequence_state = 3;
-				}else if(G1_Get_Button_Press(1 << WIFI_BUTTON)){
-					cli();
-					system_flags |= (1 << WIFI_COMM_EN_FLAG);
-					sei();
-				}else{
-					// Does nothing
-				}
-				
-			}else{
-				Wifi_Connection_Sequence();
-			}
-			
-		}
-				
-		/* Measure the battery charge level */
-		if(system_flags & (1 << ONE_SECOND_ELAPSED_FLAG)){
-			
-			cli();
-			system_flags &= ~(1 << ONE_SECOND_ELAPSED_FLAG);
-			sei();
-			
-			Battery_Level_Measure();
-		}
-		
-		break;
-		
-	case 2:
-	
-		/* Disable current measurement circuit */
-		cli();
-		Timer0_Interrupt_Disable();
-		sei();
-		Current_Sense_Circuit_PSU_Off();
-		
-		/* Save current state and go to testing mode */
-		System_Mode_Save();
-		system_mode = VIBRATION_SENSOR_CALIBRATION_MODE;
-		sequence_state = 0;
-		
-		break;
-		
-	case 3:
-		
-		/* Disable current measurement circuit */
-		cli();
-		Timer0_Interrupt_Disable();
-		sei();
-		Current_Sense_Circuit_PSU_Off();		
-		
-		/* Go to Vibration + Magnetic Pick-up Mode */
-		system_mode = VIBRATION_PICKUP_SENSOR_MODE;
-		sequence_state = 0;
-		
-		break;
-		
-	default:
-		
-		break;
-		
-	}
-
-}
-
-
-
-void Vibration_Sense_And_Motor_Speed_Sequence(void){
-	
-	static uint8_t sequence_state = 0;
-	
-	switch(sequence_state){
-		
-	case 0:
-		/* Enable the vibration sensor */
-		General_Power_Supply_Circuit_On();
-		Piezoelectric_Circuit_PSU_On();
-		Magnetic_Pickup_Circuit_PSU_On();
-		/* Wait until the power supply sets up and reset the calibration counter */
-		_delay_ms(PSU_SW_WAIT_PERIOD_MS);
-		
-		cli();
-		/* Clear the INT0 flag */
-		EIFR |= (1 << INTF0);
-		/* Prepare to measure motor speed */
-		Magnetic_Pickup_Enable();
-		sei();
-		
-		sequence_state++;
-		
-		break;
-		
-	case 1:
-
-		/* Ignore current sensor */
-		if(system_flags & (1 << CURRENT_SENSE_FLAG)){
-			cli();
-			system_flags &= ~(1 << CURRENT_SENSE_FLAG);
-			sei();
-		}
-		
-		/* Read vibration sensor (piezoelectric) */
-		if(system_flags & (1 << VIBRATION_SENSE_FLAG)){
-			
-			cli();
-			system_flags &= ~(1 << VIBRATION_SENSE_FLAG);
-			sei();
-			
-			Working_Time_Count_Update();
-		}
-
-		/* Read DIP switch and buttons */
-		if(system_flags & (1 << BUTTON_READ_FLAG)){
-			
-			cli();
-			system_flags &= ~(1 << BUTTON_READ_FLAG);
-			sei();
-			
-			if(!(system_flags & (1 << WIFI_COMM_EN_FLAG))){
-				
-				if(g1_button_state & (1 << DIP_SW_CALIB_MODE)){
-					sequence_state = 2;
-				}else if(G1_Get_Button_Press(1 << MODE_BUTTON)){
-					sequence_state = 3;
-				}else if(G1_Get_Button_Press(1 << WIFI_BUTTON)){
-					cli();
-					system_flags |= (1 << WIFI_COMM_EN_FLAG);
-					sei();
-				}else{
-					// Does nothing
-				}
-				
-			}else{
-				Wifi_Connection_Sequence();
-			}
-			
-		}
-		
-		/* Measure the battery charge level */
-		if(system_flags & (1 << ONE_SECOND_ELAPSED_FLAG)){
-			
-			cli();
-			system_flags &= ~(1 << ONE_SECOND_ELAPSED_FLAG);
-			sei();
-			
-			Battery_Level_Measure();
-		}
-		
-		break;
-		
-	case 2:
-		
-		/* Disable magnetic pick-up circuit */
-		cli();
-		Magnetic_Pickup_Disable();
-		sei();
-		Magnetic_Pickup_Circuit_PSU_Off();
-		
-		/* Save current state and go to testing mode */
-		System_Mode_Save();
-		system_mode = VIBRATION_SENSOR_CALIBRATION_MODE;
-		sequence_state = 0;
-		
-		break;
-		
-	case 3:
-
-		/* Disable magnetic pick-up circuit */
-		cli();
-		Magnetic_Pickup_Disable();
-		sei();
-		Magnetic_Pickup_Circuit_PSU_Off();
-		
-		/* Go to Vibration + Current + Magnetic Pick-up Mode */
-		system_mode = VIBRATION_CURRENT_PICKUP_SENSOR_MODE;
-		sequence_state = 0;
-		
-		break;
-		
-	default:
-		
-		break;
-		
-	}
-	
-}
 
 
 
@@ -698,25 +473,41 @@ void Vibration_Sense_Current_Sense_And_Motor_Speed_Sequence(void){
 		Magnetic_Pickup_Circuit_PSU_On();
 		/* Wait until the power supply sets up and reset the calibration counter */
 		_delay_ms(PSU_SW_WAIT_PERIOD_MS);
-		
-		cli();
-		/* Clear the INT0 flag */
-		EIFR |= (1 << INTF0);
-		/* Prepare for current measurement */
-		Timer0_Interrupt_Enable();
-		current_sense_sample_counter = 0;
-		/* Prepare to measure motor speed */
-		Magnetic_Pickup_Enable();
-		
-		sei();
-		
-		current_sense_sample_counter = 0;
-		
+	
 		sequence_state++;
 		
 		break;
-		
+
+
 	case 1:
+	
+	if(system_flags & (1 << ESP32_COMM_CHECK_FLAG)){
+		
+		cli();
+		system_flags &= ~(1 << ESP32_COMM_CHECK_FLAG);
+		sei();
+		
+		if(ESP32_Operation_Mode_And_Display_Update() == SEQUENCE_COMPLETE){
+			
+			cli();
+			/* Clear the INT0 flag */
+			EIFR |= (1 << INTF0);
+			/* Prepare for current measurement */
+			Timer0_Interrupt_Enable();
+			current_sense_sample_counter = 0;
+			/* Prepare to measure motor speed */
+			Magnetic_Pickup_Enable();
+			sei();
+			
+			current_sense_sample_counter = 0;
+			sequence_state++;
+		}
+	}
+	
+	break;
+
+		
+	case 2:
 
 		/* Read current sensor */
 		if(system_flags & (1 << CURRENT_SENSE_FLAG)){
@@ -782,7 +573,7 @@ void Vibration_Sense_Current_Sense_And_Motor_Speed_Sequence(void){
 		
 		break;
 		
-	case 2:
+	case 3:
 	
 		/* Disable current measurement and magnetic pick-up circuit */
 		cli();
@@ -799,7 +590,7 @@ void Vibration_Sense_Current_Sense_And_Motor_Speed_Sequence(void){
 		
 		break;
 		
-	case 3:
+	case 4:
 		
 		/* Disable current measurement and magnetic pick-up circuit */
 		cli();
@@ -825,8 +616,49 @@ void Vibration_Sense_Current_Sense_And_Motor_Speed_Sequence(void){
 
 
 void Wifi_Connection_Sequence(void){
-	
 	cli();
 	system_flags &= ~(1 << WIFI_COMM_EN_FLAG);
 	sei();
+}
+
+
+uint8_t ESP32_Operation_Mode_And_Display_Update(void){
+	
+	static uint8_t seq_state = 0;
+	uint8_t result = SEQUENCE_IN_PROCESS;
+	uint8_t temp;
+	
+	switch(seq_state){
+		
+	case 0:
+		ESP32_Buffer_Operation_Mode_Set(system_mode);
+		seq_state++;
+		break;		
+		
+	case 1:
+		temp = ESP32_Turn_On();
+		if(temp == DATA_COMM_SUCCESS){
+			seq_state++;
+		}
+		break;
+		
+	case 2:
+		temp = ESP32_Operation_Mode_Write();
+		if(temp == DATA_COMM_SUCCESS){
+			seq_state = 0;
+			result = SEQUENCE_COMPLETE;
+		}else if(temp == DATA_COMM_FAIL){
+			seq_state = 0;
+			result = SEQUENCE_COMPLETE;
+		}else{
+			//Does nothing
+		}
+		break;	
+	
+	default:
+		break;
+		
+	}
+
+	return result;
 }
