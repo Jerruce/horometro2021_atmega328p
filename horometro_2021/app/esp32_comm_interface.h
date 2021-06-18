@@ -84,7 +84,7 @@
 #define PARAM_STATUS_MOT_RST_BIT				11
 
 /* Timeout value */
-#define ESP32_COMM_TIMEOUT_SEC					5
+#define ESP32_COMM_TIMEOUT_SEC					1//10
 #define ESP32_COMM_TIMEOUT_VALUE				((32 * ESP32_COMM_TIMEOUT_SEC) + 1)
 
 /* Buffers' size */

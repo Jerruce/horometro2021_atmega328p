@@ -78,7 +78,7 @@ uint8_t ESP32_Turn_On(void){
 	switch(seq_state){
 		
 	case 0:
-		ESP32_Microcontroller_PSU_Off();
+		ESP32_Microcontroller_PSU_On();
 		seq_state++;
 		esp32_timeout_counter = 0;
 		break;		
@@ -445,7 +445,7 @@ uint8_t ESP32_Operation_Mode_Write(void){
 
 	case 4:
 	
-		esp32_buffer_operation_mode = SPI1_Master_Tx_Byte(0x00);
+		SPI1_Master_Tx_Byte(esp32_buffer_operation_mode);
 		seq_state = 0;
 		result = DATA_COMM_SUCCESS;
 		break;	

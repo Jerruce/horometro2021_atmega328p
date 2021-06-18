@@ -264,7 +264,8 @@ void Vibration_Sense_Calibration_Sequence(void){
 				Calib_Time_Reset();
 			
 				sequence_state++;		
-			}		
+			}	
+			
 		}
 	
 		break;
@@ -313,6 +314,10 @@ void Vibration_Sense_Calibration_Sequence(void){
 		break;
 	
 	case 3:	
+
+		/* Clean buttons */
+		G1_Get_Button_Press(1 << MODE_BUTTON);
+		G1_Get_Button_Press(1 << WIFI_BUTTON);
 	
 		/* Turn-off calibration LED */
 		PORT_ACCEL_SENSING_LED &= ~(1 << ACCEL_SENSING_LED);
@@ -367,6 +372,7 @@ void Vibration_Sense_Only_Sequence(void){
 						
 				sequence_state++;
 			}
+			
 		}
 	
 		break;
@@ -401,9 +407,9 @@ void Vibration_Sense_Only_Sequence(void){
 			if(!(system_flags & (1 << WIFI_COMM_EN_FLAG))){
 			
 				if(g1_button_state & (1 << DIP_SW_CALIB_MODE)){
-					sequence_state = 2;
-				}else if(G1_Get_Button_Press(1 << MODE_BUTTON)){
 					sequence_state = 3;
+				}else if(G1_Get_Button_Press(1 << MODE_BUTTON)){
+					sequence_state = 4;
 				}else if(G1_Get_Button_Press(1 << WIFI_BUTTON)){
 					cli();
 					system_flags |= (1 << WIFI_COMM_EN_FLAG);
@@ -440,6 +446,10 @@ void Vibration_Sense_Only_Sequence(void){
 		break;	
 		
 	case 4:
+	
+		/* Clean buttons */
+		G1_Get_Button_Press(1 << MODE_BUTTON);
+		G1_Get_Button_Press(1 << WIFI_BUTTON);
 	
 		/* Go to Vibration + Current Mode */
 		system_mode = VIBRATION_CURRENT_PICKUP_SENSOR_MODE;	
@@ -481,30 +491,30 @@ void Vibration_Sense_Current_Sense_And_Motor_Speed_Sequence(void){
 
 	case 1:
 	
-	if(system_flags & (1 << ESP32_COMM_CHECK_FLAG)){
+		if(system_flags & (1 << ESP32_COMM_CHECK_FLAG)){
 		
-		cli();
-		system_flags &= ~(1 << ESP32_COMM_CHECK_FLAG);
-		sei();
-		
-		if(ESP32_Operation_Mode_And_Display_Update() == SEQUENCE_COMPLETE){
-			
 			cli();
-			/* Clear the INT0 flag */
-			EIFR |= (1 << INTF0);
-			/* Prepare for current measurement */
-			Timer0_Interrupt_Enable();
-			current_sense_sample_counter = 0;
-			/* Prepare to measure motor speed */
-			Magnetic_Pickup_Enable();
+			system_flags &= ~(1 << ESP32_COMM_CHECK_FLAG);
 			sei();
+		
+			if(ESP32_Operation_Mode_And_Display_Update() == SEQUENCE_COMPLETE){
 			
-			current_sense_sample_counter = 0;
-			sequence_state++;
+				cli();
+				/* Clear the INT0 flag */
+				EIFR |= (1 << INTF0);
+				/* Prepare for current measurement */
+				Timer0_Interrupt_Enable();
+				current_sense_sample_counter = 0;
+				/* Prepare to measure motor speed */
+				Magnetic_Pickup_Enable();
+				sei();
+			
+				current_sense_sample_counter = 0;
+				sequence_state++;
+			}
 		}
-	}
 	
-	break;
+		break;
 
 		
 	case 2:
@@ -544,9 +554,9 @@ void Vibration_Sense_Current_Sense_And_Motor_Speed_Sequence(void){
 			if(!(system_flags & (1 << WIFI_COMM_EN_FLAG))){
 				
 				if(g1_button_state & (1 << DIP_SW_CALIB_MODE)){
-					sequence_state = 2;
-				}else if(G1_Get_Button_Press(1 << MODE_BUTTON)){
 					sequence_state = 3;
+				}else if(G1_Get_Button_Press(1 << MODE_BUTTON)){
+					sequence_state = 4;
 				}else if(G1_Get_Button_Press(1 << WIFI_BUTTON)){
 					cli();
 					system_flags |= (1 << WIFI_COMM_EN_FLAG);
@@ -591,6 +601,10 @@ void Vibration_Sense_Current_Sense_And_Motor_Speed_Sequence(void){
 		break;
 		
 	case 4:
+		
+		/* Clean buttons */
+		G1_Get_Button_Press(1 << MODE_BUTTON);
+		G1_Get_Button_Press(1 << WIFI_BUTTON);
 		
 		/* Disable current measurement and magnetic pick-up circuit */
 		cli();
