@@ -25,10 +25,8 @@ int main(void)
 	WDT_Off();
 	UART_Initialize();
 	System_Initialize();
-	//Soft_RTC1_Set_Date(20, 5, 21);
-	//Soft_RTC1_Set_Time(17, 5, 0);
 	sei();
-	
+
     /* Replace with your application code */
     while (1) 
     {	

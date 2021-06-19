@@ -133,7 +133,9 @@ uint8_t ESP32_Turn_Off(void){
 		
 	case 2:
 	
+		PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
 		SPI1_Master_Tx_Byte(ESP32_TURN_OFF_WRITE_CMD);
+		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
 		seq_state++;
 	
 		break;	
@@ -207,8 +209,9 @@ uint8_t ESP32_WiFi_Enable(void){
 		break;
 		
 	case 2:
-		
+		PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
 		SPI1_Master_Tx_Byte(ESP32_WIFI_ENABLE_WRITE_CMD);
+		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
 		seq_state++;
 		
 		break;
@@ -281,8 +284,9 @@ uint8_t ESP32_WiFi_Disable(void){
 		break;
 		
 	case 2:
-		
+		PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
 		SPI1_Master_Tx_Byte(ESP32_WIFI_DISABLE_WRITE_CMD);
+		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
 		seq_state++;
 		
 		break;
@@ -353,8 +357,9 @@ uint8_t ESP32_Epaper_Display_Update(void){
 		break;
 		
 	case 2:
-		
+		PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
 		SPI1_Master_Tx_Byte(ESP32_EPAPER_UPDATE_WRITE_CMD);
+		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
 		seq_state++;
 		break;
 		
@@ -423,8 +428,9 @@ uint8_t ESP32_Operation_Mode_Write(void){
 		break;
 		
 	case 2:
-	
+		PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
 		SPI1_Master_Tx_Byte(ESP32_OP_MODE_WRITE_CMD);
+		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
 		seq_state++;
 	
 		break;
@@ -444,8 +450,9 @@ uint8_t ESP32_Operation_Mode_Write(void){
 		break;	
 
 	case 4:
-	
+		PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
 		SPI1_Master_Tx_Byte(esp32_buffer_operation_mode);
+		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
 		seq_state = 0;
 		result = DATA_COMM_SUCCESS;
 		break;	
@@ -493,8 +500,9 @@ uint8_t ESP32_Date_And_Time_Write(void){
 		break;
 		
 	case 2:
-		
+		PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
 		SPI1_Master_Tx_Byte(ESP32_DATE_AND_TIME_WRITE_CMD);
+		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
 		seq_state++;
 		
 		break;
@@ -522,7 +530,9 @@ uint8_t ESP32_Date_And_Time_Write(void){
 		spi_tx_buffer[4] = esp32_buffer_time[1];
 		spi_tx_buffer[5] = esp32_buffer_time[2];
 		
+		PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
 		SPI1_Master_Tx_Bitstream(6, spi_tx_buffer, spi_rx_buffer);
+		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
 		seq_state = 0;
 		result = DATA_COMM_SUCCESS;
 		break;
@@ -570,8 +580,9 @@ uint8_t ESP32_Alarms_Status_Write(void){
 		break;
 		
 	case 2:
-		
+		PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
 		SPI1_Master_Tx_Byte(ESP32_ALARMS_STATUS_WRITE_CMD);
+		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
 		seq_state++;
 		break;
 		
@@ -590,8 +601,9 @@ uint8_t ESP32_Alarms_Status_Write(void){
 		break;
 
 	case 4:
-	
+		PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
 		SPI1_Master_Tx_Byte(esp32_buffer_alarms_status);
+		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
 		seq_state = 0;
 		result = DATA_COMM_SUCCESS;
 		break;
@@ -640,8 +652,9 @@ uint8_t ESP32_Alarm1_Setpoint_Write(void){
 		break;
 		
 	case 2:
-		
+		PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
 		SPI1_Master_Tx_Byte(ESP32_ALARM1_SETPOINT_WRITE_CMD);
+		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
 		seq_state++;
 		
 		break;
@@ -667,7 +680,9 @@ uint8_t ESP32_Alarm1_Setpoint_Write(void){
 		spi_tx_buffer[2] = (esp32_buffer_alarm1_setpoint >> 16) & 0x000000FF;
 		spi_tx_buffer[3] = (esp32_buffer_alarm1_setpoint >> 24) & 0x000000FF;
 		
+		PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
 		SPI1_Master_Tx_Bitstream(4, spi_tx_buffer, spi_rx_buffer);
+		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
 		seq_state = 0;
 		result = DATA_COMM_SUCCESS;
 		break;
@@ -716,8 +731,9 @@ uint8_t ESP32_Alarm2_Setpoint_Write(void){
 		break;
 		
 	case 2:
-		
+		PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
 		SPI1_Master_Tx_Byte(ESP32_ALARM2_SETPOINT_WRITE_CMD);
+		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
 		seq_state++;
 		
 		break;
@@ -743,7 +759,9 @@ uint8_t ESP32_Alarm2_Setpoint_Write(void){
 		spi_tx_buffer[2] = (esp32_buffer_alarm2_setpoint >> 16) & 0x000000FF;
 		spi_tx_buffer[3] = (esp32_buffer_alarm2_setpoint >> 24) & 0x000000FF;
 		
+		PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
 		SPI1_Master_Tx_Bitstream(4, spi_tx_buffer, spi_rx_buffer);
+		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
 		seq_state = 0;
 		result = DATA_COMM_SUCCESS;
 		break;
@@ -792,8 +810,9 @@ uint8_t ESP32_Alarm3_Setpoint_Write(void){
 		break;
 		
 	case 2:
-		
+		PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
 		SPI1_Master_Tx_Byte(ESP32_ALARM3_SETPOINT_WRITE_CMD);
+		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
 		seq_state++;
 		
 		break;
@@ -819,7 +838,9 @@ uint8_t ESP32_Alarm3_Setpoint_Write(void){
 		spi_tx_buffer[2] = (esp32_buffer_alarm3_setpoint >> 16) & 0x000000FF;
 		spi_tx_buffer[3] = (esp32_buffer_alarm3_setpoint >> 24) & 0x000000FF;
 		
+		PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
 		SPI1_Master_Tx_Bitstream(4, spi_tx_buffer, spi_rx_buffer);
+		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
 		seq_state = 0;
 		result = DATA_COMM_SUCCESS;
 		break;
@@ -868,8 +889,9 @@ uint8_t ESP32_Alarm1_Counter_Write(void){
 		break;
 		
 	case 2:
-		
+		PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
 		SPI1_Master_Tx_Byte(ESP32_ALARM1_COUNTER_WRITE_CMD);
+		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
 		seq_state++;
 		
 		break;
@@ -895,7 +917,9 @@ uint8_t ESP32_Alarm1_Counter_Write(void){
 		spi_tx_buffer[2] = (esp32_buffer_alarm1_counter >> 16) & 0x000000FF;
 		spi_tx_buffer[3] = (esp32_buffer_alarm1_counter >> 24) & 0x000000FF;
 		
+		PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
 		SPI1_Master_Tx_Bitstream(4, spi_tx_buffer, spi_rx_buffer);
+		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
 		seq_state = 0;
 		result = DATA_COMM_SUCCESS;
 		break;
@@ -944,8 +968,9 @@ uint8_t ESP32_Alarm2_Counter_Write(void){
 		break;
 		
 	case 2:
-		
+		PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
 		SPI1_Master_Tx_Byte(ESP32_ALARM2_COUNTER_WRITE_CMD);
+		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
 		seq_state++;
 		
 		break;
@@ -971,7 +996,9 @@ uint8_t ESP32_Alarm2_Counter_Write(void){
 		spi_tx_buffer[2] = (esp32_buffer_alarm2_counter >> 16) & 0x000000FF;
 		spi_tx_buffer[3] = (esp32_buffer_alarm2_counter >> 24) & 0x000000FF;
 		
+		PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
 		SPI1_Master_Tx_Bitstream(4, spi_tx_buffer, spi_rx_buffer);
+		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
 		seq_state = 0;
 		result = DATA_COMM_SUCCESS;
 		break;
@@ -1020,8 +1047,9 @@ uint8_t ESP32_Alarm3_Counter_Write(void){
 		break;
 		
 	case 2:
-		
+		PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
 		SPI1_Master_Tx_Byte(ESP32_ALARM3_COUNTER_WRITE_CMD);
+		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
 		seq_state++;
 		
 		break;
@@ -1047,7 +1075,9 @@ uint8_t ESP32_Alarm3_Counter_Write(void){
 		spi_tx_buffer[2] = (esp32_buffer_alarm3_counter >> 16) & 0x000000FF;
 		spi_tx_buffer[3] = (esp32_buffer_alarm3_counter >> 24) & 0x000000FF;
 		
+		PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
 		SPI1_Master_Tx_Bitstream(4, spi_tx_buffer, spi_rx_buffer);
+		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
 		seq_state = 0;
 		result = DATA_COMM_SUCCESS;
 		break;
@@ -1095,8 +1125,9 @@ uint8_t ESP32_Motor_Counter_Write(void){
 		break;
 		
 	case 2:
-		
+		PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
 		SPI1_Master_Tx_Byte(ESP32_MOTOR_COUNTER_WRITE_CMD);
+		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
 		seq_state++;
 		
 		break;
@@ -1122,7 +1153,9 @@ uint8_t ESP32_Motor_Counter_Write(void){
 		spi_tx_buffer[2] = (esp32_buffer_motor_counter >> 16) & 0x000000FF;
 		spi_tx_buffer[3] = (esp32_buffer_motor_counter >> 24) & 0x000000FF;
 		
+		PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
 		SPI1_Master_Tx_Bitstream(4, spi_tx_buffer, spi_rx_buffer);
+		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
 		seq_state = 0;
 		result = DATA_COMM_SUCCESS;
 		break;
@@ -1171,8 +1204,9 @@ uint8_t ESP32_Motor_Speed_Status_Write(void){
 		break;
 		
 	case 2:
-		
+		PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
 		SPI1_Master_Tx_Byte(ESP32_MOTOR_SPEED_STATUS_WRITE_CMD);
+		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
 		seq_state++;
 		
 		break;
@@ -1195,8 +1229,9 @@ uint8_t ESP32_Motor_Speed_Status_Write(void){
 		
 		spi_tx_buffer[0] = esp32_buffer_motor_speed & 0x000000FF;
 		spi_tx_buffer[1] = (esp32_buffer_motor_speed >> 8) & 0x000000FF;
-		
+		PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
 		SPI1_Master_Tx_Bitstream(2, spi_tx_buffer, spi_rx_buffer);
+		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
 		seq_state = 0;
 		result = DATA_COMM_SUCCESS;
 		break;
@@ -1245,8 +1280,9 @@ uint8_t ESP32_Motor_Current_Status_Write(void){
 		break;
 		
 	case 2:
-		
+		PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
 		SPI1_Master_Tx_Byte(ESP32_MOTOR_CURRENT_STATUS_WRITE_CMD);
+		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
 		seq_state++;
 		
 		break;
@@ -1272,7 +1308,9 @@ uint8_t ESP32_Motor_Current_Status_Write(void){
 		spi_tx_buffer[2] = (esp32_buffer_motor_current >> 16) & 0x000000FF;
 		spi_tx_buffer[3] = (esp32_buffer_motor_current >> 24) & 0x000000FF;
 		
+		PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
 		SPI1_Master_Tx_Bitstream(4, spi_tx_buffer, spi_rx_buffer);
+		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
 		seq_state = 0;
 		result = DATA_COMM_SUCCESS;
 		break;
@@ -1321,8 +1359,9 @@ uint8_t ESP32_Battery_Level_Status_Write(void){
 		break;
 		
 	case 2:
-		
+		PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
 		SPI1_Master_Tx_Byte(ESP32_BATTERY_LEVEL_STATUS_WRITE_CMD);
+		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
 		seq_state++;
 		
 		break;
@@ -1342,8 +1381,9 @@ uint8_t ESP32_Battery_Level_Status_Write(void){
 		break;
 
 	case 4:
-		
+		PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
 		SPI1_Master_Tx_Byte(esp32_buffer_battery_level);
+		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
 		seq_state = 0;
 		result = DATA_COMM_SUCCESS;
 		break;
@@ -1392,8 +1432,9 @@ uint8_t ESP32_Parameters_Status_Read(void){
 		break;
 		
 	case 2:
-		
+		PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
 		SPI1_Master_Tx_Byte(ESP32_PARAM_STATUS_READ_CMD);
+		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
 		seq_state++;
 		
 		break;
@@ -1413,8 +1454,9 @@ uint8_t ESP32_Parameters_Status_Read(void){
 		break;
 
 	case 4:
-		
+		PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
 		SPI1_Master_Tx_Bitstream(2, spi_tx_buffer, spi_rx_buffer);
+		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
 		esp32_buffer_param_status = (((uint16_t)spi_rx_buffer[1]) << 8) | (spi_rx_buffer[0]); 
 		seq_state = 0;
 		result = DATA_COMM_SUCCESS;
@@ -1465,8 +1507,9 @@ uint8_t ESP32_Operation_Mode_Read(void){
 		break;
 		
 	case 2:
-		
+		PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
 		SPI1_Master_Tx_Byte(ESP32_OP_MODE_READ_CMD);
+		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
 		seq_state++;
 		
 		break;
@@ -1486,8 +1529,9 @@ uint8_t ESP32_Operation_Mode_Read(void){
 		break;
 
 	case 4:
-		
+		PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
 		esp32_buffer_operation_mode = SPI1_Master_Tx_Byte(0x00);
+		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
 		seq_state = 0;
 		result = DATA_COMM_SUCCESS;
 		break;
@@ -1537,8 +1581,9 @@ uint8_t ESP32_Date_And_Time_Read(void){
 		break;
 		
 	case 2:
-		
+		PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
 		SPI1_Master_Tx_Byte(ESP32_DATE_AND_TIME_READ_CMD);
+		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
 		seq_state++;
 		
 		break;
@@ -1558,8 +1603,9 @@ uint8_t ESP32_Date_And_Time_Read(void){
 		break;
 
 	case 4:
-		
+		PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
 		SPI1_Master_Tx_Bitstream(6, spi_tx_buffer, spi_rx_buffer);
+		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
 		esp32_buffer_date[0] = spi_rx_buffer[0];
 		esp32_buffer_date[1] = spi_rx_buffer[1];
 		esp32_buffer_date[2] = spi_rx_buffer[2];
@@ -1615,8 +1661,9 @@ uint8_t ESP32_Alarm1_Setpoint_Read(void){
 		break;
 		
 	case 2:
-		
+		PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
 		SPI1_Master_Tx_Byte(ESP32_ALARM1_SETPOINT_READ_CMD);
+		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
 		seq_state++;
 		
 		break;
@@ -1636,8 +1683,9 @@ uint8_t ESP32_Alarm1_Setpoint_Read(void){
 		break;
 
 	case 4:
-		
+		PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
 		SPI1_Master_Tx_Bitstream(4, spi_tx_buffer, spi_rx_buffer);
+		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
 		esp32_buffer_alarm1_setpoint = (((uint32_t)spi_rx_buffer[3]) << 24) | (((uint32_t)spi_rx_buffer[2]) << 16) | (((uint32_t)spi_rx_buffer[1]) << 8) | (spi_rx_buffer[0]);
 		seq_state = 0;
 		result = DATA_COMM_SUCCESS;
@@ -1687,8 +1735,9 @@ uint8_t ESP32_Alarm2_Setpoint_Read(void){
 		break;
 		
 	case 2:
-		
+		PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
 		SPI1_Master_Tx_Byte(ESP32_ALARM2_SETPOINT_READ_CMD);
+		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
 		seq_state++;
 		
 		break;
@@ -1708,8 +1757,9 @@ uint8_t ESP32_Alarm2_Setpoint_Read(void){
 		break;
 
 	case 4:
-		
+		PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
 		SPI1_Master_Tx_Bitstream(4, spi_tx_buffer, spi_rx_buffer);
+		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
 		esp32_buffer_alarm2_setpoint = (((uint32_t)spi_rx_buffer[3]) << 24) | (((uint32_t)spi_rx_buffer[2]) << 16) | (((uint32_t)spi_rx_buffer[1]) << 8) | (spi_rx_buffer[0]);
 		seq_state = 0;
 		result = DATA_COMM_SUCCESS;
@@ -1759,8 +1809,9 @@ uint8_t ESP32_Alarm3_Setpoint_Read(void){
 		break;
 		
 	case 2:
-		
+		PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
 		SPI1_Master_Tx_Byte(ESP32_ALARM3_SETPOINT_READ_CMD);
+		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
 		seq_state++;
 		
 		break;
@@ -1780,8 +1831,9 @@ uint8_t ESP32_Alarm3_Setpoint_Read(void){
 		break;
 
 	case 4:
-		
+		PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
 		SPI1_Master_Tx_Bitstream(4, spi_tx_buffer, spi_rx_buffer);
+		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
 		esp32_buffer_alarm3_setpoint = (((uint32_t)spi_rx_buffer[3]) << 24) | (((uint32_t)spi_rx_buffer[2]) << 16) | (((uint32_t)spi_rx_buffer[1]) << 8) | (spi_rx_buffer[0]);
 		seq_state = 0;
 		result = DATA_COMM_SUCCESS;
