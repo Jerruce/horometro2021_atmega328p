@@ -659,6 +659,18 @@ uint8_t ESP32_Operation_Mode_And_Display_Update(void){
 	case 2:
 		temp = ESP32_Operation_Mode_Write();
 		if(temp == DATA_COMM_SUCCESS){
+			seq_state++;
+		}else if(temp == DATA_COMM_FAIL){
+			seq_state = 0;
+			result = SEQUENCE_COMPLETE;
+		}else{
+			//Does nothing
+		}
+		break;	
+		
+	case 3:
+		temp = ESP32_Epaper_Display_Update();
+		if(temp == DATA_COMM_SUCCESS){
 			seq_state = 0;
 			result = SEQUENCE_COMPLETE;
 		}else if(temp == DATA_COMM_FAIL){
@@ -667,7 +679,7 @@ uint8_t ESP32_Operation_Mode_And_Display_Update(void){
 		}else{
 			//Does nothing
 		}
-		break;	
+		break;		
 	
 	default:
 		break;

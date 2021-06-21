@@ -24,28 +24,14 @@ int main(void)
 {
 
 	WDT_Off();
-	//UART_Initialize();
-	//System_Initialize();
-	//sei();
-
-	Enabling_Switches_Initialize();
-	ESP32_Comm_Interface_Initialize();
-	General_Power_Supply_Circuit_On();
-	ESP32_Microcontroller_PSU_On();
+	UART_Initialize();
+	System_Initialize();
+	sei();
 
     /* Replace with your application code */
     while (1) 
     {	
-		//System_Sequence();
-		
-		//if(!(PIN_MCU_FEEDBACK_HANDSHAKE & (1 << MCU_FEEDBACK_HANDSHAKE))){
-			PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
-			//SPI1_Master_Tx_Byte(0b01010101);
-			_delay_ms(1);
-			PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);		
-		//}
-		
-		_delay_ms(1);
+		System_Sequence();
     }
 	
 	return  0;

@@ -375,7 +375,7 @@ uint8_t ESP32_Epaper_Display_Update(void){
 		
 	case 2:		
 	
-		spi_tx_buffer[0] = ESP32_EPAPER_UPDATE_WRITE_CMD;
+		spi_tx_buffer[0] = ESP32_EPAPER_SCREEN01_WRITE_CMD;
 		spi_tx_buffer[1] = 0;
 		spi_tx_buffer[2] = 0;
 		spi_tx_buffer[3] = 0;
@@ -2058,6 +2058,7 @@ uint8_t ESP32_Alarm3_Setpoint_Read(void){
 		esp32_buffer_alarm3_setpoint = (((uint32_t)spi_rx_buffer[3]) << 24) | (((uint32_t)spi_rx_buffer[2]) << 16) | (((uint32_t)spi_rx_buffer[1]) << 8) | (spi_rx_buffer[0]);
 		seq_state = 0;
 		result = DATA_COMM_SUCCESS;
+		
 		break;
 
 	case 5:
