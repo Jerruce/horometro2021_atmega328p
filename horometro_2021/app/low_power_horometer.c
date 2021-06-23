@@ -13,8 +13,12 @@
 /* Variable defintion */
 
 volatile uint32_t system_flags = 0;
-volatile uint16_t parameter_status_flag;
+volatile uint16_t parameter_status_flag = 0;
+volatile uint8_t alarm_status_flags= 0;
 
+static uint8_t previous_alarm_flags = 0;
+static uint8_t new_alarm_flags = 0;
+static uint8_t alarm_event_flags = 0; 
 static uint8_t system_mode = VIBRATION_SENSOR_ONLY_MODE;
 static uint8_t stored_system_mode = VIBRATION_SENSOR_ONLY_MODE;
 static uint32_t esp32_time_counter = 0;
@@ -264,10 +268,10 @@ void Vibration_Sense_Calibration_Sequence(void){
 	}
 	
 	/* Measure the battery charge level */
-	if(system_flags & ((uint32_t)1 << BATTERY_LEVEL_MASURE_FLAG)){
+	if(system_flags & ((uint32_t)1 << BATTERY_LEVEL_MEASURE_FLAG)){
 		
 		cli();
-		system_flags &= ~((uint32_t)1 << BATTERY_LEVEL_MASURE_FLAG);
+		system_flags &= ~((uint32_t)1 << BATTERY_LEVEL_MEASURE_FLAG);
 		sei();
 		
 		Battery_Level_Measure();
@@ -287,41 +291,24 @@ void Vibration_Sense_Calibration_Sequence(void){
 		/* Start with the LED off */
 		PORT_ACCEL_SENSING_LED &= ~(1 << ACCEL_SENSING_LED);
 		
+		cli();
+		/* Clear the INT0 flag */
+		EIFR |= (1 << INTF0);
+		system_flags |= ((uint32_t)1 << SHOW_CALIBRATION_SCREEN_FLAG);
+		sei();
+				
+		/* Reset the calibration counter */
+		Calib_Time_Reset();		
+		
 		sequence_state++;
 	 	
 		break;
-		
-	case 1:
-	
-		if(system_flags & ((uint32_t)1 << ESP32_COMM_CHECK_FLAG)){
 			
-			cli();
-			system_flags &= ~((uint32_t)1 << ESP32_COMM_CHECK_FLAG);
-			sei();
-			
-			if(ESP32_Operation_Mode_Update() == SEQUENCE_COMPLETE){
-	
-				cli();
-				/* Clear the INT0 flag */
-				EIFR |= (1 << INTF0);
-				system_flags |= ((uint32_t)1 << SHOW_CALIBRATION_SCREEN_FLAG);
-				sei();
-			
-				/* Reset the calibration counter */
-				Calib_Time_Reset();
-			
-				sequence_state++;		
-			}	
-			
-		}
-	
-		break;
-	
-	case 2:	
+	case 1:	
 	
 		if(system_flags & ((uint32_t)1 << SHOW_CALIBRATION_SCREEN_FLAG)){
 			
-			sequence_state = 4;
+			sequence_state = 3;
 			
 		}else if(system_flags & ((uint32_t)1 << CHANGE_OPERATION_MODE_FLAG)){	
 			
@@ -334,7 +321,7 @@ void Vibration_Sense_Calibration_Sequence(void){
 		
 		break;
 	
-	case 3:	
+	case 2:	
 
 		/* Clean buttons */
 		G1_Get_Button_Press(1 << MODE_BUTTON);
@@ -350,7 +337,7 @@ void Vibration_Sense_Calibration_Sequence(void){
 		break;
 
 
-	case 4:
+	case 3:
 	
 		if(system_flags & ((uint32_t)1 << ESP32_COMM_CHECK_FLAG)){
 				
@@ -358,18 +345,17 @@ void Vibration_Sense_Calibration_Sequence(void){
 			system_flags &= ~((uint32_t)1 << ESP32_COMM_CHECK_FLAG);
 			sei();
 	
-			if(ESP32_Calibration_Counter_And_Display_Update() == SEQUENCE_COMPLETE){
+			if(ESP32_Calibration_Screen_Display_Update() == SEQUENCE_COMPLETE){
 				/* Print the alarm screen for 10 seconds (and clear the flag in the end) */
 				cli();
 				system_flags &= ~((uint32_t)1 << SHOW_CALIBRATION_SCREEN_FLAG);
 				sei();
 				/* Go back to the normal mode */
-				sequence_state = 2;
+				sequence_state = 1;
 			}
 		
 		}
 	
-
 		break;
 
 	default:
@@ -401,18 +387,25 @@ void Vibration_Sense_Only_Sequence(void){
 		
 		Working_Time_Count_Update();
 		
-		if(parameter_status_flag & (1 << PARAM_STATUS_AL1_EN_BIT)){
+		if(alarm_status_flags& (1 << E1_FLAG)){
 			Alarm1_Time_Count_Update();
 		}
 
-		if(parameter_status_flag & (1 << PARAM_STATUS_AL2_EN_BIT)){
+		if(alarm_status_flags& (1 << E2_FLAG)){
 			Alarm2_Time_Count_Update();
 		}
 		
-		if(parameter_status_flag & (1 << PARAM_STATUS_AL2_EN_BIT)){
+		if(alarm_status_flags& (1 << E3_FLAG)){
 			Alarm3_Time_Count_Update();
 		}				
 			
+	}
+	
+	Check_For_Alarm_Events();
+	if(alarm_event_flags){
+		system_flags &= ~((uint32_t)1 << TOGGLE_SCREEN_INDEX_FLAG);
+		system_flags |= ((uint32_t)1 << SHOW_ALARM_SCREEN_FLAG);
+		system_flags &= ~((uint32_t)1 << SHOW_MAIN_SCREEN_FLAG);
 	}
 
 	/* Read DIP switch and buttons */
@@ -458,10 +451,10 @@ void Vibration_Sense_Only_Sequence(void){
 	}
 	
 	/* Measure the battery charge level */
-	if(system_flags & ((uint32_t)1 << BATTERY_LEVEL_MASURE_FLAG)){
+	if(system_flags & ((uint32_t)1 << BATTERY_LEVEL_MEASURE_FLAG)){
 		
 		cli();
-		system_flags &= ~((uint32_t)1 << BATTERY_LEVEL_MASURE_FLAG);
+		system_flags &= ~((uint32_t)1 << BATTERY_LEVEL_MEASURE_FLAG);
 		sei();
 		
 		Battery_Level_Measure();
@@ -476,47 +469,29 @@ void Vibration_Sense_Only_Sequence(void){
 		Piezoelectric_Circuit_PSU_On();
 		/* Wait until the power supply sets up and reset the calibration counter */
 		_delay_ms(PSU_SW_WAIT_PERIOD_MS);
+
+		cli();
+		/* Clear the INT0 flag */
+		EIFR |= (1 << INTF0);
+		system_flags |= ((uint32_t)1 << SHOW_MAIN_SCREEN_FLAG);
+		sei();
 									
 		sequence_state++;
 			
 		break;	
-
+		
 	case 1:
-	
-		if(system_flags & ((uint32_t)1 << ESP32_COMM_CHECK_FLAG)){
-		
-			cli();
-			system_flags &= ~((uint32_t)1 << ESP32_COMM_CHECK_FLAG);
-			sei();
-		
-			if(ESP32_Operation_Mode_Update() == SEQUENCE_COMPLETE){
-			
-				cli();
-				/* Clear the INT0 flag */
-				EIFR |= (1 << INTF0);
-				system_flags |= ((uint32_t)1 << SHOW_MAIN_SCREEN_FLAG);
-				sei();
-						
-				sequence_state++;
-			}
-			
-		}
-	
-		break;
 
-		
-	case 2:
-	
 		if(system_flags & ((uint32_t)1 << SHOW_MAIN_SCREEN_FLAG)){
 			cli();
 			system_flags &= ~((uint32_t)1 << SHOW_MAIN_SCREEN_FLAG);
 			sei();			
-			sequence_state = 5;
+			sequence_state = 4;
 		}else if(system_flags & ((uint32_t)1 << SHOW_ALARM_SCREEN_FLAG)){
 			cli();
 			system_flags &= ~((uint32_t)1 << SHOW_ALARM_SCREEN_FLAG);
 			sei();			
-			sequence_state = 6;
+			sequence_state = 5;
 		}else if(system_flags & ((uint32_t)1 << CHANGE_TO_CALIB_MODE_FLAG)){
 			cli();
 			system_flags &= ~((uint32_t)1 << CHANGE_TO_CALIB_MODE_FLAG);
@@ -526,14 +501,14 @@ void Vibration_Sense_Only_Sequence(void){
 			cli();
 			system_flags &= ~((uint32_t)1 << CHANGE_OPERATION_MODE_FLAG);
 			sei();
-			sequence_state = 4;
+			sequence_state = 3;
 		}else{
 			//Does nothing
 		}
 	
 		break;
 		
-	case 3:
+	case 2:
 
 		/* Clean buttons */
 		G1_Get_Button_Press(1 << MODE_BUTTON);
@@ -546,7 +521,7 @@ void Vibration_Sense_Only_Sequence(void){
 	
 		break;	
 		
-	case 4:
+	case 3:
 	
 		/* Clean buttons */
 		G1_Get_Button_Press(1 << MODE_BUTTON);
@@ -558,7 +533,7 @@ void Vibration_Sense_Only_Sequence(void){
 	
 		break;
 		
-	case 5:
+	case 4:
 	
 		if(system_flags & ((uint32_t)1 << ESP32_COMM_CHECK_FLAG)){
 			
@@ -571,13 +546,13 @@ void Vibration_Sense_Only_Sequence(void){
 				/* Print the alarm screen for 10 seconds (and clear the flag in the end) */
 
 				/* Go back to the normal mode */
-				sequence_state = 2;			
+				sequence_state = 1;			
 			}
 		}
 	
 		break;
 		
-	case 6:
+	case 5:
 	
 		if(system_flags & ((uint32_t)1 << ESP32_COMM_CHECK_FLAG)){
 			
@@ -589,7 +564,7 @@ void Vibration_Sense_Only_Sequence(void){
 			if(ESP32_Alarm_Screen_Display_Update() == SEQUENCE_COMPLETE){
 		
 				/* Go back to the normal mode */
-				sequence_state = 2;
+				sequence_state = 1;
 			}
 	
 		}
@@ -611,6 +586,8 @@ void Vibration_Sense_Current_Sense_And_Motor_Speed_Sequence(void){
 	
 	static uint8_t sequence_state = 0;
 	static uint8_t current_sense_sample_counter = 0;
+	float new_current;
+	uint16_t new_freq_rpm;
 
 	/* Read current sensor */
 	if(system_flags & ((uint32_t)1 << CURRENT_SENSE_FLAG)){
@@ -624,6 +601,16 @@ void Vibration_Sense_Current_Sense_And_Motor_Speed_Sequence(void){
 			current_sense_sample_counter = 0;
 			RMS_Current_Calculate();
 			Peak_Current_Reset();
+			
+			new_freq_rpm = Magnetic_Pickup_Get_Freq_RPM();
+			new_current = RMS_Current_Get();
+			
+			//if((new_freq_rpm < MOTOR_STUCK_FREQ_LOWER_THRESHOLD_RPM) && (new_current > MOTOR_STUCK_CURRENT_UPPER_THRESHOLD)){
+				//
+			//}else if(3){
+				//
+			//}
+			
 		}
 	}
 		
@@ -648,6 +635,13 @@ void Vibration_Sense_Current_Sense_And_Motor_Speed_Sequence(void){
 			Alarm3_Time_Count_Update();
 		}		
 	}
+	
+	Check_For_Alarm_Events();
+	if(alarm_event_flags){
+		system_flags &= ~((uint32_t)1 << TOGGLE_SCREEN_INDEX_FLAG);
+		system_flags |= ((uint32_t)1 << SHOW_ALARM_SCREEN_FLAG);
+		system_flags &= ~((uint32_t)1 << SHOW_MAIN_SCREEN_FLAG);
+	}	
 
 	/* Read DIP switch and buttons */
 	if(system_flags & ((uint32_t)1 << BUTTON_READ_FLAG)){
@@ -692,10 +686,10 @@ void Vibration_Sense_Current_Sense_And_Motor_Speed_Sequence(void){
 	}
 		
 	/* Measure the battery charge level */
-	if(system_flags & ((uint32_t)1 << BATTERY_LEVEL_MASURE_FLAG)){
+	if(system_flags & ((uint32_t)1 << BATTERY_LEVEL_MEASURE_FLAG)){
 			
 		cli();
-		system_flags &= ~((uint32_t)1 << BATTERY_LEVEL_MASURE_FLAG);
+		system_flags &= ~((uint32_t)1 << BATTERY_LEVEL_MEASURE_FLAG);
 		sei();
 			
 		Battery_Level_Measure();
@@ -713,50 +707,33 @@ void Vibration_Sense_Current_Sense_And_Motor_Speed_Sequence(void){
 		/* Wait until the power supply sets up and reset the calibration counter */
 		_delay_ms(PSU_SW_WAIT_PERIOD_MS);
 	
+		cli();
+		/* Clear the INT0 flag */
+		EIFR |= (1 << INTF0);
+		/* Prepare for current measurement */
+		Timer0_Interrupt_Enable();
+		current_sense_sample_counter = 0;
+		/* Prepare to measure motor speed */
+		Magnetic_Pickup_Enable();
+		system_flags |= ((uint32_t)1 << SHOW_MAIN_SCREEN_FLAG);
+		sei();	
+	
 		sequence_state++;
 		
 		break;
 
 	case 1:
-	
-		if(system_flags & ((uint32_t)1 << ESP32_COMM_CHECK_FLAG)){
-		
-			cli();
-			system_flags &= ~((uint32_t)1 << ESP32_COMM_CHECK_FLAG);
-			sei();
-		
-			if(ESP32_Operation_Mode_Update() == SEQUENCE_COMPLETE){
-			
-				cli();
-				/* Clear the INT0 flag */
-				EIFR |= (1 << INTF0);
-				/* Prepare for current measurement */
-				Timer0_Interrupt_Enable();
-				current_sense_sample_counter = 0;
-				/* Prepare to measure motor speed */
-				Magnetic_Pickup_Enable();
-				system_flags |= ((uint32_t)1 << SHOW_MAIN_SCREEN_FLAG);
-				sei();
-			
-				current_sense_sample_counter = 0;
-				sequence_state++;
-			}
-		}
-	
-		break;
-
-	case 2:
 
 		if(system_flags & ((uint32_t)1 << SHOW_MAIN_SCREEN_FLAG)){
 			cli();
 			system_flags &= ~((uint32_t)1 << SHOW_MAIN_SCREEN_FLAG);
 			sei();
-			sequence_state = 5;
+			sequence_state = 4;
 		}else if(system_flags & ((uint32_t)1 << SHOW_ALARM_SCREEN_FLAG)){
 			cli();
 			system_flags &= ~((uint32_t)1 << SHOW_ALARM_SCREEN_FLAG);
 			sei();
-			sequence_state = 6;
+			sequence_state = 5;
 		}else if(system_flags & ((uint32_t)1 << CHANGE_TO_CALIB_MODE_FLAG)){
 			cli();
 			system_flags &= ~((uint32_t)1 << CHANGE_TO_CALIB_MODE_FLAG);
@@ -766,14 +743,14 @@ void Vibration_Sense_Current_Sense_And_Motor_Speed_Sequence(void){
 			cli();
 			system_flags &= ~((uint32_t)1 << CHANGE_OPERATION_MODE_FLAG);
 			sei();
-			sequence_state = 4;
+			sequence_state = 3;
 		}else{
 			//Does nothing
 		}
 		
 		break;
 		
-	case 3:
+	case 2:
 	
 		/* Clean buttons */
 		G1_Get_Button_Press(1 << MODE_BUTTON);
@@ -794,7 +771,7 @@ void Vibration_Sense_Current_Sense_And_Motor_Speed_Sequence(void){
 		
 		break;
 		
-	case 4:
+	case 3:
 		
 		/* Clean buttons */
 		G1_Get_Button_Press(1 << MODE_BUTTON);
@@ -814,43 +791,43 @@ void Vibration_Sense_Current_Sense_And_Motor_Speed_Sequence(void){
 		
 		break;
 	
+	case 4:
+	
+		if(system_flags & ((uint32_t)1 << ESP32_COMM_CHECK_FLAG)){
+		
+			cli();
+			system_flags &= ~((uint32_t)1 << ESP32_COMM_CHECK_FLAG);
+			sei();
+		
+			/* Print the main screen */
+			if(ESP32_Main_Screen_Display_Update() == SEQUENCE_COMPLETE){
+				/* Print the alarm screen for 10 seconds (and clear the flag in the end) */
+
+				/* Go back to the normal mode */
+				sequence_state = 1;
+			}
+		}
+	
+		break;
+	
 	case 5:
 	
-	if(system_flags & ((uint32_t)1 << ESP32_COMM_CHECK_FLAG)){
+		if(system_flags & ((uint32_t)1 << ESP32_COMM_CHECK_FLAG)){
 		
-		cli();
-		system_flags &= ~((uint32_t)1 << ESP32_COMM_CHECK_FLAG);
-		sei();
+			cli();
+			system_flags &= ~((uint32_t)1 << ESP32_COMM_CHECK_FLAG);
+			sei();
 		
-		/* Print the main screen */
-		if(ESP32_Main_Screen_Display_Update() == SEQUENCE_COMPLETE){
-			/* Print the alarm screen for 10 seconds (and clear the flag in the end) */
-
-			/* Go back to the normal mode */
-			sequence_state = 2;
-		}
-	}
-	
-	break;
-	
-	case 6:
-	
-	if(system_flags & ((uint32_t)1 << ESP32_COMM_CHECK_FLAG)){
-		
-		cli();
-		system_flags &= ~((uint32_t)1 << ESP32_COMM_CHECK_FLAG);
-		sei();
-		
-		/* Print the alarm screen */
-		if(ESP32_Alarm_Screen_Display_Update() == SEQUENCE_COMPLETE){
+			/* Print the alarm screen */
+			if(ESP32_Alarm_Screen_Display_Update() == SEQUENCE_COMPLETE){
 			
-			/* Go back to the normal mode */
-			sequence_state = 2;
-		}
+				/* Go back to the normal mode */
+				sequence_state = 1;
+			}
 		
-	}
+		}
 	
-	break;
+		break;
 	
 		
 	default:
@@ -868,6 +845,49 @@ void Wifi_Connection_Sequence(void){
 	sei();
 }
 
+
+void Check_For_Alarm_Events(void){
+	
+	previous_alarm_flags = new_alarm_flags;
+	
+	if(system_flags & ((uint32_t)1 << ALARM_01_REACHED_FLAG)){
+		alarm_status_flags |= (1 << AL1_FLAG);
+		new_alarm_flags |= (1 << PROG_ALARM1_EVENT_FLAG);
+	}
+
+	if(system_flags & ((uint32_t)1 << ALARM_02_REACHED_FLAG)){
+		alarm_status_flags |= (1 << AL2_FLAG);
+		new_alarm_flags |= (1 << PROG_ALARM2_EVENT_FLAG);
+	}
+	
+	if(system_flags & ((uint32_t)1 << ALARM_02_REACHED_FLAG)){
+		alarm_status_flags |= (1 << AL3_FLAG);
+		new_alarm_flags |= (1 << PROG_ALARM2_EVENT_FLAG);
+	}	
+	
+	
+	if(system_flags & ((uint32_t)1 << MOTOR_STUCK_ALARM_FLAG)){
+		alarm_status_flags |= (1 << ALS_FLAG);
+		new_alarm_flags |= (1 << MOTOR_STUCK_ALARM_EVENT_FLAG);
+	}else{
+		alarm_status_flags &= ~(1 << ALS_FLAG);
+		new_alarm_flags &= ~(1 << MOTOR_STUCK_ALARM_EVENT_FLAG);
+		previous_alarm_flags &= ~(1 << MOTOR_STUCK_ALARM_EVENT_FLAG);
+	}
+
+
+	if(system_flags & ((uint32_t)1 << OVERCURRENT_ALARM_FLAG)){
+		alarm_status_flags |= (1 << ALO_FLAG);
+		new_alarm_flags |= (1 << MOTOR_OVERCURRENT_ALARM_EVENT_FLAG);
+	}else{
+		alarm_status_flags &= ~(1 << ALO_FLAG);
+		new_alarm_flags &= ~(1 << MOTOR_OVERCURRENT_ALARM_EVENT_FLAG);
+		previous_alarm_flags &= ~(1 << MOTOR_OVERCURRENT_ALARM_EVENT_FLAG);
+	}	
+	
+	alarm_event_flags = previous_alarm_flags ^ new_alarm_flags; 
+	
+}
 
 
 uint8_t ESP32_Operation_Mode_Update(void){
@@ -933,17 +953,189 @@ uint8_t ESP32_Main_Screen_Display_Update(void){
 	static uint8_t seq_state = 0;
 	uint8_t result = SEQUENCE_IN_PROCESS;
 	uint8_t temp;
+	uint32_t new_hh;
+	uint8_t new_mm, new_ss;
+	uint8_t new_date[3];
+	uint8_t new_time[3];
 	
 	switch(seq_state){
 		
 	case 0:
+		/* System mode */
+		ESP32_Buffer_Operation_Mode_Set(system_mode);
+		/* Battery level */
+		ESP32_Buffer_Battery_Level_Set(Battery_Level_Get());			
+		/* Alarm setpoints */
+		ESP32_Buffer_Alarm1_Setpoint_Set(Alarm1_Setpoint_Get());
+		ESP32_Buffer_Alarm2_Setpoint_Set(Alarm2_Setpoint_Get());
+		ESP32_Buffer_Alarm3_Setpoint_Set(Alarm3_Setpoint_Get());
+		/* Alarm counters */
+		Alarm1_Time_Get(&new_hh, &new_mm, &new_ss);
+		ESP32_Buffer_Alarm1_Counter_Set(new_hh);
+		Alarm2_Time_Get(&new_hh, &new_mm, &new_ss);
+		ESP32_Buffer_Alarm2_Counter_Set(new_hh);
+		Alarm3_Time_Get(&new_hh, &new_mm, &new_ss);
+		ESP32_Buffer_Alarm3_Counter_Set(new_hh);					
+		/* General motor counter */
+		Working_Time_Get(&new_hh, &new_mm, &new_ss);
+		ESP32_Buffer_Motor_Counter_Set(new_hh);
+		/* Date and time */
+		cli();
+		Soft_RTC1_Get_Date(new_date, new_date + 1, new_date + 2);
+		Soft_RTC1_Get_Time(new_time, new_time + 1, new_time + 2);
+		sei();
+		ESP32_Buffer_Date_And_Time_Set(new_date, new_time);
+		/* Alarm status */
+		ESP32_Buffer_Alarms_Status_Set(alarm_status_flags);		
+		/* Alarm events */
+		ESP32_Buffer_Alarms_Events_Set(alarm_event_flags);
+				
+		seq_state++;		
+				
+		break;	
+		
+	case 1:
 		temp = ESP32_Turn_On();
 		if(temp == DATA_COMM_SUCCESS){
 			seq_state++;
 		}
 		break;
+
+
+	case 2:
+	
+		temp = ESP32_Operation_Mode_Write();
+		if(temp == DATA_COMM_SUCCESS){
+			seq_state++;
+		}else if(temp == DATA_COMM_FAIL){
+			seq_state = 14;
+		}else{
+			//Does nothing
+		}
+		break;		
+
+	
+	case 3:
+	
+		temp = ESP32_Battery_Level_Status_Write();
+		if(temp == DATA_COMM_SUCCESS){
+			seq_state++;
+		}else if(temp == DATA_COMM_FAIL){
+			seq_state = 14;
+		}else{
+			//Does nothing
+		}
+		break;	
+	
+	case 4:
+	
+		temp = ESP32_Alarm1_Setpoint_Write();
+		if(temp == DATA_COMM_SUCCESS){
+			seq_state++;
+		}else if(temp == DATA_COMM_FAIL){
+			seq_state = 14;
+		}else{
+			//Does nothing
+		}
+		break;		
 		
-	case 1:
+	case 5:
+	
+		temp = ESP32_Alarm1_Counter_Write();
+		if(temp == DATA_COMM_SUCCESS){
+			seq_state++;
+		}else if(temp == DATA_COMM_FAIL){
+			seq_state = 14;
+		}else{
+			//Does nothing
+		}
+		break;		
+			
+	case 6:
+	
+		temp = ESP32_Alarm2_Setpoint_Write();
+		if(temp == DATA_COMM_SUCCESS){
+			seq_state++;
+			}else if(temp == DATA_COMM_FAIL){
+			seq_state = 14;
+			}else{
+			//Does nothing
+		}
+		break;
+	
+	case 7:
+	
+		temp = ESP32_Alarm2_Counter_Write();
+		if(temp == DATA_COMM_SUCCESS){
+			seq_state++;
+			}else if(temp == DATA_COMM_FAIL){
+			seq_state = 14;
+			}else{
+			//Does nothing
+		}
+		break;		
+		
+	case 8:
+	
+		temp = ESP32_Alarm3_Setpoint_Write();
+		if(temp == DATA_COMM_SUCCESS){
+			seq_state++;
+		}else if(temp == DATA_COMM_FAIL){
+			seq_state = 14;
+		}else{
+			//Does nothing
+		}
+		break;
+	
+	case 9:
+	
+		temp = ESP32_Alarm3_Counter_Write();
+		if(temp == DATA_COMM_SUCCESS){
+			seq_state++;
+		}else if(temp == DATA_COMM_FAIL){
+			seq_state = 14;
+		}else{
+			//Does nothing
+		}
+		break;		
+		
+	case 10:
+		
+		temp = ESP32_Motor_Counter_Write();
+		if(temp == DATA_COMM_SUCCESS){
+			seq_state++;
+		}else if(temp == DATA_COMM_FAIL){
+			seq_state = 14;
+		}else{
+			//Does nothing
+		}
+		break;	
+		
+	case 11:
+	
+		temp = ESP32_Date_And_Time_Write();
+		if(temp == DATA_COMM_SUCCESS){
+			seq_state++;
+		}else if(temp == DATA_COMM_FAIL){
+			seq_state = 14;
+		}else{
+			//Does nothing
+		}
+		break;	
+			
+	case 12:
+	
+		temp = ESP32_Alarms_Status_Write();
+		if(temp == DATA_COMM_SUCCESS){
+			seq_state++;
+		}else if(temp == DATA_COMM_FAIL){
+			seq_state = 14;
+		}else{
+			//Does nothing
+		}
+		break;		
+	
+	case 13:
 		temp = ESP32_Epaper_Screen01_Update();
 		if(temp == DATA_COMM_SUCCESS){
 			seq_state++;
@@ -954,7 +1146,7 @@ uint8_t ESP32_Main_Screen_Display_Update(void){
 		}
 		break;
 		
-	case 2:
+	case 14:
 		
 		//temp = ESP32_Turn_Off();
 		//if(temp == DATA_COMM_SUCCESS){
@@ -986,18 +1178,191 @@ uint8_t ESP32_Alarm_Screen_Display_Update(void){
 	static uint8_t seq_state = 0;
 	uint8_t result = SEQUENCE_IN_PROCESS;
 	uint8_t temp;
+	uint32_t new_hh;
+	uint8_t new_mm, new_ss;
+	uint8_t new_date[3];
+	uint8_t new_time[3];
 	
 	switch(seq_state){
 		
 	case 0:
+		/* System mode */
+		ESP32_Buffer_Operation_Mode_Set(system_mode);
+		/* Battery level */
+		ESP32_Buffer_Battery_Level_Set(Battery_Level_Get());
+		/* Alarm setpoints */
+		ESP32_Buffer_Alarm1_Setpoint_Set(Alarm1_Setpoint_Get());
+		ESP32_Buffer_Alarm2_Setpoint_Set(Alarm2_Setpoint_Get());
+		ESP32_Buffer_Alarm3_Setpoint_Set(Alarm3_Setpoint_Get());
+		/* Alarm counters */
+		Alarm1_Time_Get(&new_hh, &new_mm, &new_ss);
+		ESP32_Buffer_Alarm1_Counter_Set(new_hh);
+		Alarm2_Time_Get(&new_hh, &new_mm, &new_ss);
+		ESP32_Buffer_Alarm2_Counter_Set(new_hh);
+		Alarm3_Time_Get(&new_hh, &new_mm, &new_ss);
+		ESP32_Buffer_Alarm3_Counter_Set(new_hh);
+		/* General motor counter */
+		Working_Time_Get(&new_hh, &new_mm, &new_ss);
+		ESP32_Buffer_Motor_Counter_Set(new_hh);
+		/* Date and time */
+		cli();
+		Soft_RTC1_Get_Date(new_date, new_date + 1, new_date + 2);
+		Soft_RTC1_Get_Time(new_time, new_time + 1, new_time + 2);
+		sei();
+		ESP32_Buffer_Date_And_Time_Set(new_date, new_time);
+		/* Alarm status */
+		ESP32_Buffer_Alarms_Status_Set(alarm_status_flags);
+		/* Alarm events */
+		ESP32_Buffer_Alarms_Events_Set(alarm_event_flags);
+		
+		seq_state++;
+		
+		break;
+		
+	case 1:
 		temp = ESP32_Turn_On();
 		if(temp == DATA_COMM_SUCCESS){
 			seq_state++;
 		}
 		break;
+
+
+	case 2:
 		
-	case 1:
-		temp = ESP32_Epaper_Screen02_Update();
+		temp = ESP32_Operation_Mode_Write();
+		if(temp == DATA_COMM_SUCCESS){
+			seq_state = 14;//seq_state++;
+		}else if(temp == DATA_COMM_FAIL){
+			seq_state = 14;
+		}else{
+			//Does nothing
+		}
+		break;
+
+		
+	case 3:
+		
+		temp = ESP32_Battery_Level_Status_Write();
+		if(temp == DATA_COMM_SUCCESS){
+			seq_state++;
+			}else if(temp == DATA_COMM_FAIL){
+			seq_state = 14;
+			}else{
+			//Does nothing
+		}
+		break;
+		
+	case 4:
+		
+		temp = ESP32_Alarm1_Setpoint_Write();
+		if(temp == DATA_COMM_SUCCESS){
+			seq_state++;
+			}else if(temp == DATA_COMM_FAIL){
+			seq_state = 14;
+			}else{
+			//Does nothing
+		}
+		break;
+		
+	case 5:
+		
+		temp = ESP32_Alarm1_Counter_Write();
+		if(temp == DATA_COMM_SUCCESS){
+			seq_state++;
+		}else if(temp == DATA_COMM_FAIL){
+			seq_state = 14;
+		}else{
+			//Does nothing
+		}
+		break;
+		
+	case 6:
+		
+		temp = ESP32_Alarm2_Setpoint_Write();
+		if(temp == DATA_COMM_SUCCESS){
+			seq_state++;
+			}else if(temp == DATA_COMM_FAIL){
+			seq_state = 14;
+			}else{
+			//Does nothing
+		}
+		break;
+		
+	case 7:
+		
+		temp = ESP32_Alarm2_Counter_Write();
+		if(temp == DATA_COMM_SUCCESS){
+			seq_state++;
+		}else if(temp == DATA_COMM_FAIL){
+			seq_state = 14;
+		}else{
+			//Does nothing
+		}
+		break;
+		
+	case 8:
+		
+		temp = ESP32_Alarm3_Setpoint_Write();
+		if(temp == DATA_COMM_SUCCESS){
+			seq_state++;
+		}else if(temp == DATA_COMM_FAIL){
+			seq_state = 14;
+		}else{
+			//Does nothing
+		}
+		break;
+		
+	case 9:
+		
+		temp = ESP32_Alarm3_Counter_Write();
+		if(temp == DATA_COMM_SUCCESS){
+			seq_state++;
+		}else if(temp == DATA_COMM_FAIL){
+			seq_state = 14;
+		}else{
+			//Does nothing
+		}
+		break;
+		
+	case 10:
+		
+		temp = ESP32_Motor_Counter_Write();
+		if(temp == DATA_COMM_SUCCESS){
+			seq_state++;
+		}else if(temp == DATA_COMM_FAIL){
+			seq_state = 14;
+		}else{
+			//Does nothing
+		}
+		break;
+		
+	case 11:
+		
+		temp = ESP32_Date_And_Time_Write();
+		if(temp == DATA_COMM_SUCCESS){
+			seq_state++;
+		}else if(temp == DATA_COMM_FAIL){
+			seq_state = 14;
+		}else{
+			//Does nothing
+		}
+		break;
+		
+	case 12:
+		
+		temp = ESP32_Alarms_Status_Write();
+		if(temp == DATA_COMM_SUCCESS){
+			seq_state++;
+		}else if(temp == DATA_COMM_FAIL){
+			seq_state = 14;
+		}else{
+			//Does nothing
+		}
+		break;
+		
+	case 13:
+	
+		temp = ESP32_Epaper_Screen01_Update();
 		if(temp == DATA_COMM_SUCCESS){
 			seq_state++;
 		}else if(temp == DATA_COMM_FAIL){
@@ -1007,17 +1372,17 @@ uint8_t ESP32_Alarm_Screen_Display_Update(void){
 		}
 		break;
 		
-	case 2:
+	case 14:
 		
 		//temp = ESP32_Turn_Off();
 		//if(temp == DATA_COMM_SUCCESS){
-			//seq_state = 0;
-			//result = SEQUENCE_COMPLETE;
+		//seq_state = 0;
+		//result = SEQUENCE_COMPLETE;
 		//}else if(temp == DATA_COMM_FAIL){
-			//seq_state = 0;
-			//result = SEQUENCE_COMPLETE;
+		//seq_state = 0;
+		//result = SEQUENCE_COMPLETE;
 		//}else{
-			////Does nothing
+		////Does nothing
 		//}
 		
 		seq_state = 0;
@@ -1028,13 +1393,13 @@ uint8_t ESP32_Alarm_Screen_Display_Update(void){
 	default:
 		break;
 		
-	}	
-	
+	}
+
 	return result;
 }
 
 
-uint8_t ESP32_Calibration_Counter_And_Display_Update(void){
+uint8_t ESP32_Calibration_Screen_Display_Update(void){
 
 	static uint8_t seq_state = 0;
 	uint8_t result = SEQUENCE_IN_PROCESS;
@@ -1043,6 +1408,8 @@ uint8_t ESP32_Calibration_Counter_And_Display_Update(void){
 	switch(seq_state){
 		
 	case 0:
+		ESP32_Buffer_Operation_Mode_Set(system_mode);
+		ESP32_Buffer_Battery_Level_Set(Battery_Level_Get());
 		ESP32_Buffer_Calibration_Counter_Set(Calib_Time_Get());
 		seq_state++;
 		break;
@@ -1055,18 +1422,43 @@ uint8_t ESP32_Calibration_Counter_And_Display_Update(void){
 		break;
 		
 	case 2:
-		temp = ESP32_Calibration_Counter_Write();
+		temp = ESP32_Operation_Mode_Write();
 		if(temp == DATA_COMM_SUCCESS){
 			seq_state++;
 		}else if(temp == DATA_COMM_FAIL){
-			seq_state = 4;
+			seq_state = 6;
 			result = SEQUENCE_COMPLETE;
 		}else{
 			//Does nothing
 		}
-		break;	
+		break;
 		
 	case 3:
+	
+		temp = ESP32_Battery_Level_Status_Write();
+		if(temp == DATA_COMM_SUCCESS){
+			seq_state++;
+		}else if(temp == DATA_COMM_FAIL){
+			seq_state = 6;
+			result = SEQUENCE_COMPLETE;
+		}else{
+			//Does nothing
+		}
+		break;			
+		
+	case 4:
+		temp = ESP32_Calibration_Counter_Write();
+		if(temp == DATA_COMM_SUCCESS){
+			seq_state++;
+		}else if(temp == DATA_COMM_FAIL){
+			seq_state = 6;
+			result = SEQUENCE_COMPLETE;
+		}else{
+			//Does nothing
+		}
+	break;		
+		
+	case 5:
 		temp = ESP32_Epaper_Screen03_Update();
 		if(temp == DATA_COMM_SUCCESS){
 			seq_state++;
@@ -1077,7 +1469,7 @@ uint8_t ESP32_Calibration_Counter_And_Display_Update(void){
 		}
 		break;
 		
-	case 4:
+	case 6:
 		
 		//temp = ESP32_Turn_Off();
 		//if(temp == DATA_COMM_SUCCESS){

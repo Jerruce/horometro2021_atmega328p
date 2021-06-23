@@ -88,6 +88,14 @@
 #define PARAM_STATUS_AL3_RST_BIT				10
 #define PARAM_STATUS_MOT_RST_BIT				11
 
+
+// Alarm event flags
+#define PROG_ALARM1_EVENT_FLAG						0
+#define PROG_ALARM2_EVENT_FLAG						1
+#define PROG_ALARM3_EVENT_FLAG						2
+#define MOTOR_STUCK_ALARM_EVENT_FLAG				3
+#define MOTOR_OVERCURRENT_ALARM_EVENT_FLAG			4
+
 /* Timeout value */
 #define ESP32_COMM_TIMEOUT_SEC					1
 #define ESP32_COMM_TIMEOUT_VALUE				((32 * ESP32_COMM_TIMEOUT_SEC) + 1)
@@ -138,10 +146,11 @@ uint8_t ESP32_Alarm3_Setpoint_Read(void);
 
 void ESP32_Buffer_Operation_Mode_Set(uint8_t new_mode);
 void ESP32_Buffer_Date_And_Time_Set(uint8_t *new_date, uint8_t *new_time);
-void ESP32_Buffer_Alarms_Status_Set(uint8_t new_alarms_status);
+void ESP32_Buffer_Alarms_Events_Set(uint8_t new_alarm_event);
+void ESP32_Buffer_Alarms_Status_Set(uint8_t new_alarm_status);
 void ESP32_Buffer_Alarm1_Setpoint_Set(uint32_t new_setpoint);
 void ESP32_Buffer_Alarm2_Setpoint_Set(uint32_t new_setpoint);
-void ESP32_Buffer_Alarm2_Setpoint_Set(uint32_t new_setpoint);
+void ESP32_Buffer_Alarm3_Setpoint_Set(uint32_t new_setpoint);
 void ESP32_Buffer_Alarm1_Counter_Set(uint32_t new_counter);
 void ESP32_Buffer_Alarm2_Counter_Set(uint32_t new_counter);
 void ESP32_Buffer_Alarm3_Counter_Set(uint32_t new_counter);

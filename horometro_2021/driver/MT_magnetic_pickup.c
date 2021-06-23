@@ -35,7 +35,6 @@ void Timer1_Initialize(void){
 	my_timer.interrupt_mask = Timer_Interrupts_Disabled;
 	
 	Timer1_Configurar(&my_timer);
-	
 }
 
 

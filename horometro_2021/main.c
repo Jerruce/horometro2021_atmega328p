@@ -89,10 +89,11 @@ ISR(TIMER2_COMPA_vect){
 		Soft_RTC1_Update();
 		system_flags |= ((uint32_t)1 << ONE_SECOND_ELAPSED_FLAG);
 
+		/* Measure battery levelevery 15 minutes */
 		battery_level_measure_count_sec++;
 		if(battery_level_measure_count_sec >= BATTERY_MEASURE_PERIOD_SEC){
 			battery_level_measure_count_sec = 0;
-			system_flags |= ((uint32_t)1 << BATTERY_LEVEL_MASURE_FLAG);
+			system_flags |= ((uint32_t)1 << BATTERY_LEVEL_MEASURE_FLAG);
 		}
 		
 		/* Refresh calibration screen every 20 seconds */

@@ -113,22 +113,31 @@
 
 // ----------- Defines for current measurement -----------------
 
-#define CURRENT_SENSE_RESISTOR_OHM			0.02		
-#define CURRENT_SENSE_CIRCUIT_GAIN_01		20.0
-#define CURRENT_SENSE_CIRCUIT_GAIN_02		(-3.0)
-#define CURRENT_RMS_CALC_N_SAMPLES			100
+#define CURRENT_SENSE_RESISTOR_OHM				0.02		
+#define CURRENT_SENSE_CIRCUIT_GAIN_01			20.0
+#define CURRENT_SENSE_CIRCUIT_GAIN_02			(-3.0)
+#define CURRENT_RMS_CALC_N_SAMPLES				100
 
-#define CURRENT_SENSE_SPAN				1.0
-#define CURRENT_SENSE_OFFSET			0.0
+#define CURRENT_SENSE_SPAN						1.0
+#define CURRENT_SENSE_OFFSET					0.0
+
+#define OVERCURRENT_UPPER_THRESHOLD				31
+#define OVERCURRENT_LOWER_THRESHOLD				29
+
+#define MOTOR_STUCK_CURRENT_UPPER_THRESHOLD		11
+#define MOTOR_STUCK_CURRENT_LOWER_THRESHOLD		9
 
 // ----------- Defines for the magnetic pick-up -----------------
 
-#define TIMER1_PRESCALER_VALUE			1
-#define F_CPU_HZ						128000
-#define FREQ_CORRECTION_FACTOR			0.78125
-#define MAG_PICKUP_MAX_FREQ_HZ			60
-#define MAG_PICKUP_MIN_FREQ_HZ			5
-#define PICKUP_N_SAMPLES				16
+#define TIMER1_PRESCALER_VALUE					1
+#define F_CPU_HZ								128000
+#define FREQ_CORRECTION_FACTOR					0.78125
+#define MAG_PICKUP_MAX_FREQ_HZ					60
+#define MAG_PICKUP_MIN_FREQ_HZ					5
+#define PICKUP_N_SAMPLES						16
+
+//#define MOTOR_STUCK_FREQ_UPPER_THRESHOLD_RPM	121	
+//#define MOTOR_STUCK_FREQ_LOWER_THRESHOLD_RPM	119
 
 // ----------- Defines for battery voltage sense -----------------
 
@@ -139,12 +148,14 @@
 #define BATT_MED_TO_HIGH_LEVEL_PERCENT_THRESHOLD		92.0
 #define BATT_HIGH_TO_MED_LEVEL_PERCENT_THRESHOLD		88.0
 #define BATT_LOW_TO_MED_LEVEL_PERCENT_THRESHOLD			42.0
-#define BATT_MED_TO_LOW_LEVEL_PERCENT_THRESHOLD			38.0		
+#define BATT_MED_TO_LOW_LEVEL_PERCENT_THRESHOLD			38.0	
+#define BATT_CRITICAL_TO_LOW_LEVEL_PERCENT_THRESHOLD	27.0
+#define BATT_LOW_TO_CRITICAL_LEVEL_PERCENT_THRESHOLD	23.0	
 
-#define BATTERY_LEVEL_LOW								0
-#define BATTERY_LEVEL_MED								1
-#define BATTERY_LEVEL_HIGH								2
-
+#define BATTERY_LEVEL_CRITICAL							0
+#define BATTERY_LEVEL_LOW								1
+#define BATTERY_LEVEL_MED								2
+#define BATTERY_LEVEL_HIGH								3
 
 // -------------------- Sequence states ----------------------
 #define SEQUENCE_IN_PROCESS								0
@@ -155,6 +166,17 @@
 #define VIBRATION_SENSOR_ONLY_MODE						0
 #define VIBRATION_CURRENT_PICKUP_SENSOR_MODE			1
 #define VIBRATION_SENSOR_CALIBRATION_MODE				2	
+
+// ----------------- Alarm status flags  -----------------------
+
+#define E1_FLAG		0
+#define AL1_FLAG	1
+#define E2_FLAG		2
+#define AL2_FLAG	3
+#define E3_FLAG		4
+#define AL3_FLAG	5
+#define ALS_FLAG	6
+#define ALO_FLAG	7
 
 /* ---------------------- System flags ------------------------ */
 
@@ -177,7 +199,7 @@
 #define SHOW_MAIN_SCREEN_FLAG			 16
 #define SHOW_ALARM_SCREEN_FLAG			 17
 #define TOGGLE_SCREEN_INDEX_FLAG		 18				  
-#define BATTERY_LEVEL_MASURE_FLAG		 19
+#define BATTERY_LEVEL_MEASURE_FLAG		 19
 		
 
 #define SERIAL_MSG_FLAG					 31

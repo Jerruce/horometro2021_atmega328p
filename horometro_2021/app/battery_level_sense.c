@@ -45,13 +45,14 @@ void Battery_Level_Measure(void){
 		// Does nothing
 	}	
 	
-
 	if(battery_percent >= BATT_MED_TO_HIGH_LEVEL_PERCENT_THRESHOLD){
 		battery_charge_level = BATTERY_LEVEL_HIGH;
 	}else if((battery_percent < BATT_HIGH_TO_MED_LEVEL_PERCENT_THRESHOLD) && (battery_percent > BATT_LOW_TO_MED_LEVEL_PERCENT_THRESHOLD)){
 		battery_charge_level = BATTERY_LEVEL_MED;
-	}else if(battery_percent <= BATT_MED_TO_LOW_LEVEL_PERCENT_THRESHOLD){
+	}else if((battery_percent < BATT_MED_TO_LOW_LEVEL_PERCENT_THRESHOLD) && (battery_percent > BATT_CRITICAL_TO_LOW_LEVEL_PERCENT_THRESHOLD)){
 		battery_charge_level = BATTERY_LEVEL_LOW;
+	}else if(battery_percent < BATT_LOW_TO_CRITICAL_LEVEL_PERCENT_THRESHOLD){
+		battery_charge_level = BATTERY_LEVEL_CRITICAL;
 	}else{
 		// Does nothing
 	}

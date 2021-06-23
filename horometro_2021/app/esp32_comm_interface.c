@@ -16,7 +16,8 @@ static uint32_t esp32_timeout_counter = 0;
 static uint8_t esp32_buffer_operation_mode = VIBRATION_SENSOR_ONLY_MODE;
 static uint8_t esp32_buffer_date[3] = {0, 0, 0};
 static uint8_t esp32_buffer_time[3] = {0, 0, 0};
-static uint8_t esp32_buffer_alarms_status = 0;
+static uint8_t esp32_buffer_alarm_event = 0;	
+static uint8_t esp32_buffer_alarm_status = 0;
 static uint32_t esp32_buffer_alarm1_setpoint = 0;
 static uint32_t esp32_buffer_alarm2_setpoint = 0;
 static uint32_t esp32_buffer_alarm3_setpoint = 0;
@@ -728,10 +729,12 @@ uint8_t ESP32_Date_And_Time_Write(void){
 		spi_tx_buffer[3] = esp32_buffer_time[0];
 		spi_tx_buffer[4] = esp32_buffer_time[1];
 		spi_tx_buffer[5] = esp32_buffer_time[2];
+		spi_tx_buffer[6] = esp32_buffer_alarm_event;
 				
 		PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
 		SPI1_Master_Tx_Bitstream(DATE_AND_TIME_WRITE_FRAME_SIZE, spi_tx_buffer, spi_rx_buffer);
-		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);_delay_us(50);
+		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
+		_delay_us(50);
 		seq_state = 0;
 		result = DATA_COMM_SUCCESS;
 		break;
@@ -812,7 +815,7 @@ uint8_t ESP32_Alarms_Status_Write(void){
 		for(byte_count = 0; byte_count < ALARMS_STATUS_WRITE_FRAME_SIZE; byte_count++){
 			spi_tx_buffer[byte_count] = 0;
 		}
-		spi_tx_buffer[0] = esp32_buffer_alarms_status;
+		spi_tx_buffer[0] = esp32_buffer_alarm_status;
 			
 		PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
 		SPI1_Master_Tx_Bitstream(ALARMS_STATUS_WRITE_FRAME_SIZE, spi_tx_buffer, spi_rx_buffer);
@@ -2327,9 +2330,12 @@ void ESP32_Buffer_Date_And_Time_Set(uint8_t *new_date, uint8_t *new_time){
 	esp32_buffer_time[2] = *(new_time + 2);
 }
 
+void ESP32_Buffer_Alarms_Events_Set(uint8_t new_alarm_event){
+	esp32_buffer_alarm_event = new_alarm_event;
+}
 
-void ESP32_Buffer_Alarms_Status_Set(uint8_t new_alarms_status){
-	esp32_buffer_alarms_status = new_alarms_status;
+void ESP32_Buffer_Alarms_Status_Set(uint8_t new_alarm_status){
+	esp32_buffer_alarm_status = new_alarm_status;
 }
 
 

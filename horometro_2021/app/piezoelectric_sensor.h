@@ -32,21 +32,21 @@ void Working_Time_Reset(void);
 
 void Alarm1_Time_Count_Update(void);
 void Alarm1_Time_Set(uint32_t hh, uint8_t mm, uint8_t ss);
-void Alarm1_Working_Time_Get(uint32_t *hh, uint8_t *mm, uint8_t *ss);
+void Alarm1_Time_Get(uint32_t *hh, uint8_t *mm, uint8_t *ss);
 void Alarm1_Time_Reset(void);
 void Alarm1_Setpoint_Set(uint32_t sp);
 uint32_t Alarm1_Setpoint_Get(void);
 
 void Alarm2_Time_Count_Update(void);
 void Alarm2_Time_Set(uint32_t hh, uint8_t mm, uint8_t ss);
-void Alarm2_Working_Time_Get(uint32_t *hh, uint8_t *mm, uint8_t *ss);
+void Alarm2_Time_Get(uint32_t *hh, uint8_t *mm, uint8_t *ss);
 void Alarm2_Time_Reset(void);
 void Alarm2_Setpoint_Set(uint32_t sp);
 uint32_t Alarm2_Setpoint_Get(void);
 
 void Alarm3_Time_Count_Update(void);
 void Alarm3_Time_Set(uint32_t hh, uint8_t mm, uint8_t ss);
-void Alarm3_Working_Time_Get(uint32_t *hh, uint8_t *mm, uint8_t *ss);
+void Alarm3_Time_Get(uint32_t *hh, uint8_t *mm, uint8_t *ss);
 void Alarm3_Time_Reset(void);
 void Alarm3_Setpoint_Set(uint32_t sp);
 uint32_t Alarm3_Setpoint_Get(void);
