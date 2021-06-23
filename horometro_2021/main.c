@@ -46,7 +46,7 @@ int main(void)
 ISR(TIMER0_COMPA_vect){
 		
 	/* Measure the instant current value every 1ms */
-	system_flags |= (1 << CURRENT_SENSE_FLAG);
+	system_flags |= ((uint32_t)1 << CURRENT_SENSE_FLAG);
 		
 }
 
@@ -67,29 +67,43 @@ ISR(TIMER1_COMPA_vect){
 ISR(TIMER2_COMPA_vect){
 	
 	static uint8_t counter_1s = 0;
-	
 	static uint8_t counter_1_div_32_sec = 0;
+	static uint16_t battery_level_measure_count_sec = 0;
+	static uint8_t calibration_count_sec = 0;
 	
-	system_flags |= (1 << ESP32_COMM_CHECK_FLAG);
+	system_flags |= ((uint32_t)1 << ESP32_COMM_CHECK_FLAG);
 	
 	/* Read the vibration sensor every 1/32 sec (31.25ms) */
-	system_flags |= (1 << VIBRATION_SENSE_FLAG);
+	system_flags |= ((uint32_t)1 << VIBRATION_SENSE_FLAG);
 	
 	/* Scan buttons every 1/32 sec (31.25ms) */
 	G1_Button_Scan();
-	system_flags |= (1 << BUTTON_READ_FLAG);	
+	system_flags |= ((uint32_t)1 << BUTTON_READ_FLAG);	
 	
 	/* Update software RTC every 1 second */
 	counter_1_div_32_sec++;
 	if(counter_1_div_32_sec >= 32){
+		
 		counter_1_div_32_sec = 0;
 		Soft_RTC1_Update();
-		system_flags |= (1 << ONE_SECOND_ELAPSED_FLAG);
+		system_flags |= ((uint32_t)1 << ONE_SECOND_ELAPSED_FLAG);
+
+		battery_level_measure_count_sec++;
+		if(battery_level_measure_count_sec >= BATTERY_MEASURE_PERIOD_SEC){
+			battery_level_measure_count_sec = 0;
+			system_flags |= ((uint32_t)1 << BATTERY_LEVEL_MASURE_FLAG);
+		}
+		
+		calibration_count_sec++;
+		if(calibration_count_sec >= CALIBRATION_COUNT_DISPLAY_PERIOD_SEC){
+			calibration_count_sec = 0;
+			system_flags |= ((uint32_t)1 << SHOW_CALIBRATION_SCREEN_FLAG);
+		}
 			
 		counter_1s++;
 		if(counter_1s >= 5){
 			counter_1s = 0;
-			system_flags |= (1 << SERIAL_MSG_FLAG);
+			system_flags |= ((uint32_t)1 << SERIAL_MSG_FLAG);
 		}
 	}	
 }

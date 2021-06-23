@@ -13,7 +13,7 @@
 #include <stdint.h>
 
 /* Variable declaration */ 
-extern volatile uint16_t system_flags;
-
+extern volatile uint32_t system_flags;
+extern volatile uint16_t parameter_status_flag;
 
 #endif /* GLOBAL_H_ */

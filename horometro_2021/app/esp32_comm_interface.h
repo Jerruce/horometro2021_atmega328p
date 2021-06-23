@@ -24,19 +24,21 @@
 #define ESP32_WIFI_DISABLE_WRITE_CMD				0x03
 #define ESP32_EPAPER_SCREEN01_WRITE_CMD				0x04
 #define ESP32_EPAPER_SCREEN02_WRITE_CMD				0x05
-#define ESP32_OP_MODE_WRITE_CMD						0x06
-#define ESP32_DATE_AND_TIME_WRITE_CMD				0x07
-#define ESP32_ALARMS_STATUS_WRITE_CMD				0x08
-#define ESP32_ALARM1_SETPOINT_WRITE_CMD				0x09
-#define ESP32_ALARM2_SETPOINT_WRITE_CMD				0x0A
-#define ESP32_ALARM3_SETPOINT_WRITE_CMD				0x0B
-#define ESP32_ALARM1_COUNTER_WRITE_CMD				0x0C
-#define ESP32_ALARM2_COUNTER_WRITE_CMD				0x0D
-#define ESP32_ALARM3_COUNTER_WRITE_CMD				0x0E
-#define ESP32_MOTOR_COUNTER_WRITE_CMD				0x0F
-#define ESP32_MOTOR_SPEED_STATUS_WRITE_CMD			0x10
-#define ESP32_MOTOR_CURRENT_STATUS_WRITE_CMD		0x11
-#define ESP32_BATTERY_LEVEL_STATUS_WRITE_CMD		0x12
+#define ESP32_EPAPER_SCREEN03_WRITE_CMD				0x06
+#define ESP32_OP_MODE_WRITE_CMD						0x07
+#define ESP32_DATE_AND_TIME_WRITE_CMD				0x08
+#define ESP32_ALARMS_STATUS_WRITE_CMD				0x09
+#define ESP32_ALARM1_SETPOINT_WRITE_CMD				0x0A
+#define ESP32_ALARM2_SETPOINT_WRITE_CMD				0x0B
+#define ESP32_ALARM3_SETPOINT_WRITE_CMD				0x0C
+#define ESP32_ALARM1_COUNTER_WRITE_CMD				0x0D
+#define ESP32_ALARM2_COUNTER_WRITE_CMD				0x0E
+#define ESP32_ALARM3_COUNTER_WRITE_CMD				0x0F
+#define ESP32_MOTOR_COUNTER_WRITE_CMD				0x10
+#define ESP32_MOTOR_SPEED_STATUS_WRITE_CMD			0x11
+#define ESP32_MOTOR_CURRENT_STATUS_WRITE_CMD		0x12
+#define ESP32_BATTERY_LEVEL_STATUS_WRITE_CMD		0x13
+#define ESP32_CALIBRATION_COUNTER_WRITE_CMD			0x14
 
 
 // Size in bytes of the frames TRANSMITTED to the ESP32
@@ -53,7 +55,7 @@
 #define MOTOR_SPEED_STATUS_WRITE_FRAME_SIZE		4//2
 #define CURRENT_STATUS_WRITE_FRAME_SIZE			4
 #define BATTERY_LEVEL_WRITE_FRAME_SIZE			4//1
-
+#define CALIBRATION_COUNTER_WRITE_FRAME_SIZE	4		
 
 // Commands for RECEIVING information from the ESP32
 #define ESP32_PARAM_STATUS_READ_CMD				0x21
@@ -86,8 +88,10 @@
 #define PARAM_STATUS_MOT_RST_BIT				11
 
 /* Timeout value */
-#define ESP32_COMM_TIMEOUT_SEC					10
+#define ESP32_COMM_TIMEOUT_SEC					1
 #define ESP32_COMM_TIMEOUT_VALUE				((32 * ESP32_COMM_TIMEOUT_SEC) + 1)
+//#define ESP32_COMM_ALARM_SCREEN_TIME_SEC		10
+//#define ESP32_COMM_ALARM_SCREEN_TIME_VALUE		((32 * ESP32_COMM_ALARM_SCREEN_TIME_SEC) + 1)
 
 /* Buffers' size */
 #define SPI_TX_BUFF_SIZE						8
@@ -107,7 +111,9 @@ uint8_t ESP32_Turn_On(void);
 uint8_t ESP32_Turn_Off(void);
 uint8_t ESP32_WiFi_Enable(void);
 uint8_t ESP32_WiFi_Disable(void);
-uint8_t ESP32_Epaper_Display_Update(void);
+uint8_t ESP32_Epaper_Screen01_Update(void);
+uint8_t ESP32_Epaper_Screen02_Update(void);
+uint8_t ESP32_Epaper_Screen03_Update(void);
 uint8_t ESP32_Operation_Mode_Write(void);
 uint8_t ESP32_Date_And_Time_Write(void);
 uint8_t ESP32_Alarms_Status_Write(void);
@@ -121,6 +127,7 @@ uint8_t ESP32_Motor_Counter_Write(void);
 uint8_t ESP32_Motor_Speed_Status_Write(void);
 uint8_t ESP32_Motor_Current_Status_Write(void);
 uint8_t ESP32_Battery_Level_Status_Write(void);
+uint8_t ESP32_Calibration_Counter_Write(void);
 
 uint8_t ESP32_Parameters_Status_Read(void);
 uint8_t ESP32_Operation_Mode_Read(void);
@@ -142,6 +149,7 @@ void ESP32_Buffer_Motor_Counter_Set(uint32_t new_counter);
 void ESP32_Buffer_Motor_Speed_Set(uint32_t new_speed);
 void ESP32_Buffer_Motor_Current_Set(uint32_t new_current);
 void ESP32_Buffer_Battery_Level_Set(uint32_t new_level);
+void ESP32_Buffer_Calibration_Counter_Set(uint32_t new_counter);
 
 uint16_t ESP32_Buffer_Parameters_Status_Get(void);
 uint8_t ESP32_Buffer_Operation_Mode_Get(void);

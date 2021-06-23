@@ -27,6 +27,7 @@ static uint32_t esp32_buffer_motor_counter = 0;
 static uint16_t esp32_buffer_motor_speed = 0;
 static uint32_t esp32_buffer_motor_current = 0;
 static uint8_t esp32_buffer_battery_level = 0; 
+static uint32_t esp32_buffer_calibration_counter = 0;
 
 static uint16_t esp32_buffer_param_status = 0;
 
@@ -347,7 +348,7 @@ uint8_t ESP32_WiFi_Disable(void){
 }
 
 
-uint8_t ESP32_Epaper_Display_Update(void){
+uint8_t ESP32_Epaper_Screen01_Update(void){
 	
 	uint8_t result = DATA_COMM_IN_PROGESS;
 	static uint8_t seq_state = 0;
@@ -419,9 +420,158 @@ uint8_t ESP32_Epaper_Display_Update(void){
 	}
 	
 	return result;	
-	
-	
 }
+
+
+uint8_t ESP32_Epaper_Screen02_Update(void){
+	
+	uint8_t result = DATA_COMM_IN_PROGESS;
+	static uint8_t seq_state = 0;
+	
+	switch(seq_state){
+		
+		case 0:
+		esp32_timeout_counter = 0;
+		seq_state++;
+		break;
+		
+		case 1:
+		
+		if(PIN_MCU_FEEDBACK_HANDSHAKE & (1 << MCU_FEEDBACK_HANDSHAKE)){
+			esp32_timeout_counter++;
+			if(esp32_timeout_counter >= ESP32_COMM_TIMEOUT_VALUE){
+				esp32_timeout_counter = 0;
+				seq_state = 5;
+			}
+			}else{
+			esp32_timeout_counter = 0;
+			seq_state++;
+		}
+		break;
+		
+		case 2:
+		
+		spi_tx_buffer[0] = ESP32_EPAPER_SCREEN02_WRITE_CMD;
+		spi_tx_buffer[1] = 0;
+		spi_tx_buffer[2] = 0;
+		spi_tx_buffer[3] = 0;
+		
+		PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
+		SPI1_Master_Tx_Bitstream(4, spi_tx_buffer, spi_rx_buffer);
+		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
+		seq_state++;
+		
+		break;
+		
+		case 3:
+
+		if(PIN_MCU_FEEDBACK_HANDSHAKE & (1 << MCU_FEEDBACK_HANDSHAKE)){
+			esp32_timeout_counter++;
+			if(esp32_timeout_counter >= ESP32_COMM_TIMEOUT_VALUE){
+				esp32_timeout_counter = 0;
+				seq_state = 5;
+			}
+		}else{
+			esp32_timeout_counter = 0;
+			seq_state++;
+		}
+		break;
+		
+		case 4:
+		
+		seq_state = 0;
+		result = DATA_COMM_SUCCESS;
+		break;
+		
+		case 5:
+		
+		seq_state = 0;
+		result = DATA_COMM_FAIL;
+		break;
+		
+		default:
+		break;
+		
+	}
+	
+	return result;
+}
+
+
+uint8_t ESP32_Epaper_Screen03_Update(void){
+	
+	uint8_t result = DATA_COMM_IN_PROGESS;
+	static uint8_t seq_state = 0;
+	
+	switch(seq_state){
+		
+		case 0:
+		esp32_timeout_counter = 0;
+		seq_state++;
+		break;
+		
+		case 1:
+		
+		if(PIN_MCU_FEEDBACK_HANDSHAKE & (1 << MCU_FEEDBACK_HANDSHAKE)){
+			esp32_timeout_counter++;
+			if(esp32_timeout_counter >= ESP32_COMM_TIMEOUT_VALUE){
+				esp32_timeout_counter = 0;
+				seq_state = 5;
+			}
+			}else{
+			esp32_timeout_counter = 0;
+			seq_state++;
+		}
+		break;
+		
+		case 2:
+		
+		spi_tx_buffer[0] = ESP32_EPAPER_SCREEN03_WRITE_CMD;
+		spi_tx_buffer[1] = 0;
+		spi_tx_buffer[2] = 0;
+		spi_tx_buffer[3] = 0;
+		
+		PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
+		SPI1_Master_Tx_Bitstream(4, spi_tx_buffer, spi_rx_buffer);
+		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
+		seq_state++;
+		
+		break;
+		
+		case 3:
+
+		if(PIN_MCU_FEEDBACK_HANDSHAKE & (1 << MCU_FEEDBACK_HANDSHAKE)){
+			esp32_timeout_counter++;
+			if(esp32_timeout_counter >= ESP32_COMM_TIMEOUT_VALUE){
+				esp32_timeout_counter = 0;
+				seq_state = 5;
+			}
+		}else{
+			esp32_timeout_counter = 0;
+			seq_state++;
+		}
+		break;
+		
+		case 4:
+		
+		seq_state = 0;
+		result = DATA_COMM_SUCCESS;
+		break;
+		
+		case 5:
+		
+		seq_state = 0;
+		result = DATA_COMM_FAIL;
+		break;
+		
+		default:
+		break;
+		
+	}
+	
+	return result;
+}
+
 
 
 uint8_t ESP32_Operation_Mode_Write(void){
@@ -1549,6 +1699,91 @@ uint8_t ESP32_Battery_Level_Status_Write(void){
 }
 
 
+uint8_t ESP32_Calibration_Counter_Write(void){
+
+	uint8_t result = DATA_COMM_IN_PROGESS;
+	static uint8_t seq_state = 0;
+	
+	switch(seq_state){
+		
+		case 0:
+		
+		esp32_timeout_counter = 0;
+		seq_state++;
+		break;
+
+		case 1:
+		
+		if(PIN_MCU_FEEDBACK_HANDSHAKE & (1 << MCU_FEEDBACK_HANDSHAKE)){
+			esp32_timeout_counter++;
+			if(esp32_timeout_counter >= ESP32_COMM_TIMEOUT_VALUE){
+				esp32_timeout_counter = 0;
+				seq_state = 5;
+			}
+			}else{
+			esp32_timeout_counter = 0;
+			seq_state++;
+		}
+		break;
+		
+		case 2:
+		
+		spi_tx_buffer[0] = ESP32_CALIBRATION_COUNTER_WRITE_CMD;
+		spi_tx_buffer[1] = 0;
+		spi_tx_buffer[2] = 0;
+		spi_tx_buffer[3] = 0;
+		
+		PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
+		SPI1_Master_Tx_Bitstream(4, spi_tx_buffer, spi_rx_buffer);
+		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
+		seq_state++;
+		
+		break;
+		
+		case 3:
+		
+		if(PIN_MCU_FEEDBACK_HANDSHAKE & (1 << MCU_FEEDBACK_HANDSHAKE)){
+			esp32_timeout_counter++;
+			if(esp32_timeout_counter >= ESP32_COMM_TIMEOUT_VALUE){
+				esp32_timeout_counter = 0;
+				seq_state = 5;
+			}
+			}else{
+			esp32_timeout_counter = 0;
+			seq_state++;
+		}
+		break;
+
+		case 4:
+		
+		spi_tx_buffer[0] = esp32_buffer_calibration_counter & 0x000000FF;
+		spi_tx_buffer[1] = (esp32_buffer_calibration_counter >> 8) & 0x000000FF;
+		spi_tx_buffer[2] = (esp32_buffer_calibration_counter >> 16) & 0x000000FF;
+		spi_tx_buffer[3] = (esp32_buffer_calibration_counter >> 24) & 0x000000FF;
+		
+		PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
+		SPI1_Master_Tx_Bitstream(CALIBRATION_COUNTER_WRITE_FRAME_SIZE, spi_tx_buffer, spi_rx_buffer);
+		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
+		seq_state = 0;
+		result = DATA_COMM_SUCCESS;
+		break;
+
+		case 5:
+		
+		seq_state = 0;
+		result = DATA_COMM_FAIL;
+		break;
+		
+		default:
+		break;
+		
+	}
+	
+	return result;
+	
+}
+
+
 uint8_t ESP32_Parameters_Status_Read(void){
 
 	uint8_t result = DATA_COMM_IN_PROGESS;
@@ -2145,6 +2380,11 @@ void ESP32_Buffer_Motor_Current_Set(uint32_t new_current){
 
 void ESP32_Buffer_Battery_Level_Set(uint32_t new_level){
 	esp32_buffer_battery_level = new_level;
+}
+
+
+void ESP32_Buffer_Calibration_Counter_Set(uint32_t new_counter){
+	esp32_buffer_calibration_counter = new_counter;
 }
 
 

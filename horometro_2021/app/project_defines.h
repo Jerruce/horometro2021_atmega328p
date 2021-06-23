@@ -105,8 +105,10 @@
 
 // -------------- Defines for time periods ---------------------
 
-#define PSU_SW_WAIT_PERIOD_MS				50	// 50ms 
-#define HOROMETER_SECOND_N_STEPS			32	// 32 * 31.25ms = 1 sec
+#define PSU_SW_WAIT_PERIOD_MS					50	// 50ms 
+#define HOROMETER_SECOND_N_STEPS				32	// 32 * 31.25ms = 1 sec
+#define BATTERY_MEASURE_PERIOD_SEC				60
+#define CALIBRATION_COUNT_DISPLAY_PERIOD_SEC	20
 
 // ----------- Defines for current measurement -----------------
 
@@ -154,6 +156,7 @@
 #define VIBRATION_SENSOR_CALIBRATION_MODE				2	
 
 /* ---------------------- System flags ------------------------ */
+
 #define MAG_PICKUP_TIMEOUT_FLAG			 0
 #define MAG_PICKUP_TOO_FAST_FLAG		 1
 #define ONE_SECOND_ELAPSED_FLAG			 2
@@ -166,9 +169,17 @@
 #define ALARM_02_REACHED_FLAG			 9
 #define ALARM_03_REACHED_FLAG			 10
 #define OVERCURRENT_ALARM_FLAG			 11
-#define MOTOR_STUCK_ALARM_FLAG			 12	
+#define MOTOR_STUCK_ALARM_FLAG			 12
+#define CHANGE_OPERATION_MODE_FLAG		 13	
+#define CHANGE_TO_CALIB_MODE_FLAG		 14
+#define SHOW_CALIBRATION_SCREEN_FLAG	 15
+#define SHOW_MAIN_SCREEN_FLAG			 16
+#define SHOW_ALARM_SCREEN_FLAG			 17
+#define TOGGLE_SCREEN_INDEX_FLAG		 18				  
+#define BATTERY_LEVEL_MASURE_FLAG		 19
+		
 
-#define SERIAL_MSG_FLAG					 15
+#define SERIAL_MSG_FLAG					 31
 
 
 #endif /* PROJECT_DEFINES_H_ */
