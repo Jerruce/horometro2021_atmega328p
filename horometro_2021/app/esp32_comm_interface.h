@@ -13,6 +13,7 @@
 #include "project_defines.h"
 #include <avr/io.h>
 #include <stdint.h>
+#include <util/delay.h>
 #include "global.h"
 #include "MT_spi_master.h"
 #include "psu_sw_manager.h"
@@ -90,8 +91,7 @@
 /* Timeout value */
 #define ESP32_COMM_TIMEOUT_SEC					1
 #define ESP32_COMM_TIMEOUT_VALUE				((32 * ESP32_COMM_TIMEOUT_SEC) + 1)
-//#define ESP32_COMM_ALARM_SCREEN_TIME_SEC		10
-//#define ESP32_COMM_ALARM_SCREEN_TIME_VALUE		((32 * ESP32_COMM_ALARM_SCREEN_TIME_SEC) + 1)
+
 
 /* Buffers' size */
 #define SPI_TX_BUFF_SIZE						8

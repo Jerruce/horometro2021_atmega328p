@@ -904,16 +904,18 @@ uint8_t ESP32_Operation_Mode_Update(void){
 			
 	case 3:
 	
-		temp = ESP32_Turn_Off();
-		if(temp == DATA_COMM_SUCCESS){
-			seq_state = 0;
-			result = SEQUENCE_COMPLETE;
-		}else if(temp == DATA_COMM_FAIL){
-			seq_state = 0;
-			result = SEQUENCE_COMPLETE;
-		}else{
-			//Does nothing
-		}
+		//temp = ESP32_Turn_Off();
+		//if(temp == DATA_COMM_SUCCESS){
+			//seq_state = 0;
+			//result = SEQUENCE_COMPLETE;
+		//}else if(temp == DATA_COMM_FAIL){
+			//seq_state = 0;
+			//result = SEQUENCE_COMPLETE;
+		//}else{
+			////Does nothing
+		//}
+		seq_state = 0;
+		result = SEQUENCE_COMPLETE;
 		break;	
 			
 	default:
@@ -954,16 +956,20 @@ uint8_t ESP32_Main_Screen_Display_Update(void){
 		
 	case 2:
 		
-		temp = ESP32_Turn_Off();
-		if(temp == DATA_COMM_SUCCESS){
-			seq_state = 0;
-			result = SEQUENCE_COMPLETE;
-		}else if(temp == DATA_COMM_FAIL){
-			seq_state = 0;
-			result = SEQUENCE_COMPLETE;
-		}else{
-			//Does nothing
-		}
+		//temp = ESP32_Turn_Off();
+		//if(temp == DATA_COMM_SUCCESS){
+			//seq_state = 0;
+			//result = SEQUENCE_COMPLETE;
+		//}else if(temp == DATA_COMM_FAIL){
+			//seq_state = 0;
+			//result = SEQUENCE_COMPLETE;
+		//}else{
+			////Does nothing
+		//}
+		
+		seq_state = 0;
+		result = SEQUENCE_COMPLETE;
+		
 		break;
 		
 	default:
@@ -1003,16 +1009,20 @@ uint8_t ESP32_Alarm_Screen_Display_Update(void){
 		
 	case 2:
 		
-		temp = ESP32_Turn_Off();
-		if(temp == DATA_COMM_SUCCESS){
-			seq_state = 0;
-			result = SEQUENCE_COMPLETE;
-		}else if(temp == DATA_COMM_FAIL){
-			seq_state = 0;
-			result = SEQUENCE_COMPLETE;
-		}else{
-			//Does nothing
-		}
+		//temp = ESP32_Turn_Off();
+		//if(temp == DATA_COMM_SUCCESS){
+			//seq_state = 0;
+			//result = SEQUENCE_COMPLETE;
+		//}else if(temp == DATA_COMM_FAIL){
+			//seq_state = 0;
+			//result = SEQUENCE_COMPLETE;
+		//}else{
+			////Does nothing
+		//}
+		
+		seq_state = 0;
+		result = SEQUENCE_COMPLETE;
+		
 		break;
 		
 	default:
@@ -1069,16 +1079,19 @@ uint8_t ESP32_Calibration_Counter_And_Display_Update(void){
 		
 	case 4:
 		
-		temp = ESP32_Turn_Off();
-		if(temp == DATA_COMM_SUCCESS){
-			seq_state = 0;
-			result = SEQUENCE_COMPLETE;
-		}else if(temp == DATA_COMM_FAIL){
-			seq_state = 0;
-			result = SEQUENCE_COMPLETE;
-		}else{
-			//Does nothing
-		}
+		//temp = ESP32_Turn_Off();
+		//if(temp == DATA_COMM_SUCCESS){
+			//seq_state = 0;
+			//result = SEQUENCE_COMPLETE;
+		//}else if(temp == DATA_COMM_FAIL){
+			//seq_state = 0;
+			//result = SEQUENCE_COMPLETE;
+		//}else{
+			////Does nothing
+		//}
+		
+		seq_state = 0;
+		result = SEQUENCE_COMPLETE;
 		break;
 		
 	default:

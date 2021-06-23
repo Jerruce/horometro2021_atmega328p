@@ -16,9 +16,9 @@
 #define BUTTON_03			DIP_SW_CALIB_MODE
 
 #define G1_ALL_BUTTON_MASK	((1 << BUTTON_01) | (1 << BUTTON_02) | (1 << BUTTON_03))
-#define G1_REPEAT_MASK		0x00
+#define G1_REPEAT_MASK		(1 << BUTTON_02)
 
-#define REPEAT_START    100
+#define REPEAT_START    32
 #define REPEAT_NEXT     20
 #define KEY_NULL		-1
 

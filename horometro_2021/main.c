@@ -70,6 +70,7 @@ ISR(TIMER2_COMPA_vect){
 	static uint8_t counter_1_div_32_sec = 0;
 	static uint16_t battery_level_measure_count_sec = 0;
 	static uint8_t calibration_count_sec = 0;
+	static uint16_t working_count_sec = 0;
 	
 	system_flags |= ((uint32_t)1 << ESP32_COMM_CHECK_FLAG);
 	
@@ -94,10 +95,18 @@ ISR(TIMER2_COMPA_vect){
 			system_flags |= ((uint32_t)1 << BATTERY_LEVEL_MASURE_FLAG);
 		}
 		
+		/* Refresh calibration screen every 20 seconds */
 		calibration_count_sec++;
 		if(calibration_count_sec >= CALIBRATION_COUNT_DISPLAY_PERIOD_SEC){
 			calibration_count_sec = 0;
 			system_flags |= ((uint32_t)1 << SHOW_CALIBRATION_SCREEN_FLAG);
+		}
+		
+		/* Refresh main screen every 1 hour (under normal conditions) */
+		working_count_sec++;
+		if(working_count_sec >= WORKING_COUNT_DISPLAY_PERIOD_SEC){
+			working_count_sec = 0;
+			system_flags |= ((uint32_t)1 << SHOW_MAIN_SCREEN_FLAG);
 		}
 			
 		counter_1s++;
