@@ -1634,7 +1634,7 @@ uint8_t Wifi_Connection_Sequence(void){
 		if(temp == DATA_COMM_SUCCESS){
 			seq_state++;
 		}else if(temp == DATA_COMM_FAIL){
-			seq_state = 23;
+			seq_state = 24;
 		}else{
 			//Does nothing
 		}
@@ -1647,7 +1647,7 @@ uint8_t Wifi_Connection_Sequence(void){
 		if(temp == DATA_COMM_SUCCESS){
 			seq_state++;
 		}else if(temp == DATA_COMM_FAIL){
-			seq_state = 23;
+			seq_state = 24;
 		}else{
 			//Does nothing
 		}
@@ -1659,7 +1659,7 @@ uint8_t Wifi_Connection_Sequence(void){
 		if(temp == DATA_COMM_SUCCESS){
 			seq_state++;
 		}else if(temp == DATA_COMM_FAIL){
-			seq_state = 23;
+			seq_state = 24;
 		}else{
 			//Does nothing
 		}
@@ -1671,7 +1671,7 @@ uint8_t Wifi_Connection_Sequence(void){
 		if(temp == DATA_COMM_SUCCESS){
 			seq_state++;
 		}else if(temp == DATA_COMM_FAIL){
-			seq_state = 23;
+			seq_state = 24;
 		}else{
 			//Does nothing
 		}
@@ -1683,7 +1683,7 @@ uint8_t Wifi_Connection_Sequence(void){
 		if(temp == DATA_COMM_SUCCESS){
 			seq_state++;
 		}else if(temp == DATA_COMM_FAIL){
-			seq_state = 23;
+			seq_state = 24;
 		}else{
 			//Does nothing
 		}
@@ -1695,7 +1695,7 @@ uint8_t Wifi_Connection_Sequence(void){
 		if(temp == DATA_COMM_SUCCESS){
 			seq_state++;
 		}else if(temp == DATA_COMM_FAIL){
-			seq_state = 23;
+			seq_state = 24;
 		}else{
 			//Does nothing
 		}
@@ -1707,7 +1707,7 @@ uint8_t Wifi_Connection_Sequence(void){
 		if(temp == DATA_COMM_SUCCESS){
 			seq_state++;
 		}else if(temp == DATA_COMM_FAIL){
-			seq_state = 23;
+			seq_state = 24;
 		}else{
 			//Does nothing
 		}
@@ -1719,7 +1719,7 @@ uint8_t Wifi_Connection_Sequence(void){
 		if(temp == DATA_COMM_SUCCESS){
 			seq_state++;
 		}else if(temp == DATA_COMM_FAIL){
-			seq_state = 23;
+			seq_state = 24;
 		}else{
 			//Does nothing
 		}
@@ -1731,7 +1731,7 @@ uint8_t Wifi_Connection_Sequence(void){
 		if(temp == DATA_COMM_SUCCESS){
 			seq_state++;
 		}else if(temp == DATA_COMM_FAIL){
-			seq_state = 23;
+			seq_state = 24;
 		}else{
 			//Does nothing
 		}
@@ -1743,7 +1743,7 @@ uint8_t Wifi_Connection_Sequence(void){
 		if(temp == DATA_COMM_SUCCESS){
 			seq_state++;
 		}else if(temp == DATA_COMM_FAIL){
-			seq_state = 23;
+			seq_state = 24;
 		}else{
 			//Does nothing
 		}
@@ -1755,7 +1755,7 @@ uint8_t Wifi_Connection_Sequence(void){
 		if(temp == DATA_COMM_SUCCESS){
 			seq_state++;			
 		}else if(temp == DATA_COMM_FAIL){
-			seq_state = 23;
+			seq_state = 24;
 		}else{
 			//Does nothing
 		}
@@ -1767,7 +1767,7 @@ uint8_t Wifi_Connection_Sequence(void){
 		if(temp == DATA_COMM_SUCCESS){
 			seq_state++;
 		}else if(temp == DATA_COMM_FAIL){
-			seq_state = 23;
+			seq_state = 24;
 		}else{
 			//Does nothing
 		}
@@ -1779,7 +1779,7 @@ uint8_t Wifi_Connection_Sequence(void){
 		if(temp == DATA_COMM_SUCCESS){
 			seq_state++;
 		}else if(temp == DATA_COMM_FAIL){
-			seq_state = 23;
+			seq_state = 24;
 		}else{
 			//Does nothing
 		}
@@ -1811,7 +1811,7 @@ uint8_t Wifi_Connection_Sequence(void){
 			parameter_status_flag = ESP32_Buffer_Parameters_Status_Get();
 			seq_state++;
 		}else if(temp == DATA_COMM_FAIL){
-			seq_state = 23;
+			seq_state = 24;
 		}else{
 			//Does nothing
 		}
@@ -1898,7 +1898,7 @@ uint8_t Wifi_Connection_Sequence(void){
 			system_mode = ESP32_Buffer_Operation_Mode_Get();
 			seq_state = 17;
 		}else if(temp == DATA_COMM_FAIL){
-			seq_state = 23;
+			seq_state = 24;
 		}else{
 			//Does nothing
 		}
@@ -1915,7 +1915,7 @@ uint8_t Wifi_Connection_Sequence(void){
 			sei();
 			seq_state = 17;
 		}else if(temp == DATA_COMM_FAIL){
-			seq_state = 23;
+			seq_state = 24;
 		}else{
 			//Does nothing
 		}
@@ -1930,7 +1930,7 @@ uint8_t Wifi_Connection_Sequence(void){
 			sei();
 			seq_state = 17;
 		}else if(temp == DATA_COMM_FAIL){
-			seq_state = 23;
+			seq_state = 24;
 		}else{
 			//Does nothing
 		}
@@ -1945,7 +1945,7 @@ uint8_t Wifi_Connection_Sequence(void){
 			sei();		
 			seq_state = 17;
 		}else if(temp == DATA_COMM_FAIL){
-			seq_state = 23;
+			seq_state = 24;
 		}else{
 			//Does nothing
 		}
@@ -1960,13 +1960,26 @@ uint8_t Wifi_Connection_Sequence(void){
 			sei();			
 			seq_state = 17;
 		}else if(temp == DATA_COMM_FAIL){
-			seq_state = 23;
+			seq_state = 24;
 		}else{
 			//Does nothing
 		}
 		break;
 
 	case 23:
+	
+		temp = ESP32_Epaper_Screen01_Update();
+		if(temp == DATA_COMM_SUCCESS){
+			seq_state++;
+		}else if(temp == DATA_COMM_FAIL){
+			seq_state++;
+		}else{
+			//Does nothing
+		}
+		break;
+
+
+	case 24:
 
 		temp = 0;
 		
