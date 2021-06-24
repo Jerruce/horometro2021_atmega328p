@@ -1308,7 +1308,7 @@ uint8_t ESP32_Alarm_Screen_Display_Update(void){
 		
 		temp = ESP32_Operation_Mode_Write();
 		if(temp == DATA_COMM_SUCCESS){
-			seq_state = seq_state++;
+			seq_state++;
 		}else if(temp == DATA_COMM_FAIL){
 			seq_state = 14;
 		}else{
