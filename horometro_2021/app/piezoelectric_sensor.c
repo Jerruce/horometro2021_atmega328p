@@ -190,10 +190,6 @@ void Alarm1_Time_Reset(void){
 	alarm1_time_hours = 0;
 	alarm1_time_minutes = 0;
 	alarm1_time_seconds = 0;
-	
-	cli();
-	system_flags &= ~(1 << ALARM_01_REACHED_FLAG);
-	sei();
 }
 
 
@@ -256,9 +252,6 @@ void Alarm2_Time_Reset(void){
 	alarm2_time_minutes = 0;
 	alarm2_time_seconds = 0;
 	
-	cli();
-	system_flags &= ~(1 << ALARM_02_REACHED_FLAG);
-	sei();	
 }
 
 
@@ -320,10 +313,6 @@ void Alarm3_Time_Reset(void){
 	alarm3_time_hours = 0;
 	alarm3_time_minutes = 0;
 	alarm3_time_seconds = 0;
-	
-	cli();
-	system_flags &= ~(1 << ALARM_03_REACHED_FLAG);
-	sei();	
 }
 
 

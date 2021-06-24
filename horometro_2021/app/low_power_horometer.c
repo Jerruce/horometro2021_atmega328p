@@ -18,6 +18,7 @@ volatile uint8_t alarm_status_flags= 0;
 
 static uint8_t previous_alarm_flags = 0;
 static uint8_t new_alarm_flags = 0;
+static uint8_t alarm_change_flags = 0;
 static uint8_t alarm_event_flags = 0; 
 static uint8_t system_mode = VIBRATION_SENSOR_ONLY_MODE;
 static uint8_t stored_system_mode = VIBRATION_SENSOR_ONLY_MODE;
@@ -387,15 +388,15 @@ void Vibration_Sense_Only_Sequence(void){
 		
 		Working_Time_Count_Update();
 		
-		if(alarm_status_flags& (1 << E1_FLAG)){
+		if(alarm_status_flags & (1 << E1_FLAG)){
 			Alarm1_Time_Count_Update();
 		}
 
-		if(alarm_status_flags& (1 << E2_FLAG)){
+		if(alarm_status_flags & (1 << E2_FLAG)){
 			Alarm2_Time_Count_Update();
 		}
 		
-		if(alarm_status_flags& (1 << E3_FLAG)){
+		if(alarm_status_flags & (1 << E3_FLAG)){
 			Alarm3_Time_Count_Update();
 		}				
 			
@@ -415,7 +416,7 @@ void Vibration_Sense_Only_Sequence(void){
 		system_flags &= ~((uint32_t)1 << BUTTON_READ_FLAG);
 		sei();
 		
-		//if(!(system_flags & ((uint32_t)1 << WIFI_COMM_EN_FLAG))){
+		if(!(system_flags & ((uint32_t)1 << WIFI_COMM_EN_FLAG))){
 			
 			if(g1_button_state & (1 << DIP_SW_CALIB_MODE)){
 				cli();
@@ -444,10 +445,8 @@ void Vibration_Sense_Only_Sequence(void){
 				// Does nothing
 			}
 			
-		//}else{
-			//Wifi_Connection_Sequence();
-		//}
-		
+		}
+			
 	}
 	
 	/* Measure the battery charge level */
@@ -502,6 +501,8 @@ void Vibration_Sense_Only_Sequence(void){
 			system_flags &= ~((uint32_t)1 << CHANGE_OPERATION_MODE_FLAG);
 			sei();
 			sequence_state = 3;
+		}else if(system_flags & ((uint32_t)1 << WIFI_COMM_EN_FLAG)){
+			sequence_state = 6;
 		}else{
 			//Does nothing
 		}
@@ -571,8 +572,30 @@ void Vibration_Sense_Only_Sequence(void){
 		
 		break;	
 				
+	case 6:
+
+		if(system_flags & ((uint32_t)1 << ESP32_COMM_CHECK_FLAG)){
+			
+			cli();
+			system_flags &= ~((uint32_t)1 << ESP32_COMM_CHECK_FLAG);
+			sei();
+			
+			/* Print the alarm screen */
+			if(Wifi_Connection_Sequence() == SEQUENCE_COMPLETE){
+				
+				cli();
+				system_flags &= ~((uint32_t)1 << WIFI_COMM_EN_FLAG);
+				sei();
+				
+				/* Go back to the normal mode */
+				sequence_state = 1;
+			}
+			
+		}
+		
+		break;	
+				
 	default:
-	
 		break;	
 		
 	}
@@ -605,11 +628,33 @@ void Vibration_Sense_Current_Sense_And_Motor_Speed_Sequence(void){
 			new_freq_rpm = Magnetic_Pickup_Get_Freq_RPM();
 			new_current = RMS_Current_Get();
 			
-			//if((new_freq_rpm < MOTOR_STUCK_FREQ_LOWER_THRESHOLD_RPM) && (new_current > MOTOR_STUCK_CURRENT_UPPER_THRESHOLD)){
-				//
-			//}else if(3){
-				//
-			//}
+			if(new_current > OVERCURRENT_UPPER_THRESHOLD){
+				system_flags |= ((uint32_t)1 << OVERCURRENT_ALARM_FLAG);
+			}else if(new_current < OVERCURRENT_UPPER_THRESHOLD){
+				system_flags &= ~((uint32_t)1 << OVERCURRENT_ALARM_FLAG);
+			}else{
+				//Does nothing
+			}
+			
+			if(system_flags & ((uint32_t)1 << MAG_PICKUP_TIMEOUT_FLAG)){
+				
+				if(new_current > MOTOR_STUCK_CURRENT_UPPER_THRESHOLD){
+					cli();
+					system_flags |= ((uint32_t)1 << MOTOR_STUCK_ALARM_FLAG);
+					sei();				
+				}else if(new_current < MOTOR_STUCK_CURRENT_LOWER_THRESHOLD){
+					cli();
+					system_flags &= ~((uint32_t)1 << MOTOR_STUCK_ALARM_FLAG);
+					sei();				
+				}else{
+					//Does nothing
+				}
+				
+			}else{
+				cli();
+				system_flags &= ~((uint32_t)1 << MOTOR_STUCK_ALARM_FLAG);
+				sei();
+			}
 			
 		}
 	}
@@ -642,6 +687,7 @@ void Vibration_Sense_Current_Sense_And_Motor_Speed_Sequence(void){
 		system_flags |= ((uint32_t)1 << SHOW_ALARM_SCREEN_FLAG);
 		system_flags &= ~((uint32_t)1 << SHOW_MAIN_SCREEN_FLAG);
 	}	
+	
 
 	/* Read DIP switch and buttons */
 	if(system_flags & ((uint32_t)1 << BUTTON_READ_FLAG)){
@@ -650,7 +696,7 @@ void Vibration_Sense_Current_Sense_And_Motor_Speed_Sequence(void){
 		system_flags &= ~((uint32_t)1 << BUTTON_READ_FLAG);
 		sei();
 			
-		//if(!(system_flags & ((uint32_t)1 << WIFI_COMM_EN_FLAG))){
+		if(!(system_flags & ((uint32_t)1 << WIFI_COMM_EN_FLAG))){
 		
 			if(g1_button_state & (1 << DIP_SW_CALIB_MODE)){
 				cli();
@@ -679,10 +725,8 @@ void Vibration_Sense_Current_Sense_And_Motor_Speed_Sequence(void){
 				// Does nothing
 			}
 		
-		//}else{
-		//Wifi_Connection_Sequence();
-		//}
-			
+		}
+				
 	}
 		
 	/* Measure the battery charge level */
@@ -744,6 +788,8 @@ void Vibration_Sense_Current_Sense_And_Motor_Speed_Sequence(void){
 			system_flags &= ~((uint32_t)1 << CHANGE_OPERATION_MODE_FLAG);
 			sei();
 			sequence_state = 3;
+		}else if(system_flags & ((uint32_t)1 << WIFI_COMM_EN_FLAG)){
+			sequence_state = 6;
 		}else{
 			//Does nothing
 		}
@@ -828,6 +874,29 @@ void Vibration_Sense_Current_Sense_And_Motor_Speed_Sequence(void){
 		}
 	
 		break;
+
+	case 6:
+
+		if(system_flags & ((uint32_t)1 << ESP32_COMM_CHECK_FLAG)){
+		
+			cli();
+			system_flags &= ~((uint32_t)1 << ESP32_COMM_CHECK_FLAG);
+			sei();
+		
+			/* Print the alarm screen */
+			if(Wifi_Connection_Sequence() == SEQUENCE_COMPLETE){
+			
+				cli();
+				system_flags &= ~((uint32_t)1 << WIFI_COMM_EN_FLAG);
+				sei();
+			
+				/* Go back to the normal mode */
+				sequence_state = 1;
+			}
+		
+		}
+	
+		break;
 	
 		
 	default:
@@ -839,13 +908,6 @@ void Vibration_Sense_Current_Sense_And_Motor_Speed_Sequence(void){
 }
 
 
-void Wifi_Connection_Sequence(void){
-	cli();
-	system_flags &= ~((uint32_t)1 << WIFI_COMM_EN_FLAG);
-	sei();
-}
-
-
 void Check_For_Alarm_Events(void){
 	
 	previous_alarm_flags = new_alarm_flags;
@@ -853,16 +915,28 @@ void Check_For_Alarm_Events(void){
 	if(system_flags & ((uint32_t)1 << ALARM_01_REACHED_FLAG)){
 		alarm_status_flags |= (1 << AL1_FLAG);
 		new_alarm_flags |= (1 << PROG_ALARM1_EVENT_FLAG);
+	}else{
+		alarm_status_flags &= ~(1 << AL1_FLAG);
+		new_alarm_flags &= ~(1 << PROG_ALARM1_EVENT_FLAG);
+		previous_alarm_flags &= ~(1 << PROG_ALARM1_EVENT_FLAG);	
 	}
 
 	if(system_flags & ((uint32_t)1 << ALARM_02_REACHED_FLAG)){
 		alarm_status_flags |= (1 << AL2_FLAG);
 		new_alarm_flags |= (1 << PROG_ALARM2_EVENT_FLAG);
+	}else{
+		alarm_status_flags &= ~(1 << AL2_FLAG);
+		new_alarm_flags &= ~(1 << PROG_ALARM2_EVENT_FLAG);
+		previous_alarm_flags &= ~(1 << PROG_ALARM2_EVENT_FLAG);		
 	}
 	
-	if(system_flags & ((uint32_t)1 << ALARM_02_REACHED_FLAG)){
+	if(system_flags & ((uint32_t)1 << ALARM_03_REACHED_FLAG)){
 		alarm_status_flags |= (1 << AL3_FLAG);
-		new_alarm_flags |= (1 << PROG_ALARM2_EVENT_FLAG);
+		new_alarm_flags |= (1 << PROG_ALARM3_EVENT_FLAG);
+	}else{
+		alarm_status_flags &= ~(1 << AL3_FLAG);
+		new_alarm_flags &= ~(1 << PROG_ALARM3_EVENT_FLAG);
+		previous_alarm_flags &= ~(1 << PROG_ALARM3_EVENT_FLAG);	
 	}	
 	
 	
@@ -885,7 +959,8 @@ void Check_For_Alarm_Events(void){
 		previous_alarm_flags &= ~(1 << MOTOR_OVERCURRENT_ALARM_EVENT_FLAG);
 	}	
 	
-	alarm_event_flags = previous_alarm_flags ^ new_alarm_flags; 
+	alarm_change_flags = previous_alarm_flags ^ new_alarm_flags; 
+	alarm_event_flags |= alarm_change_flags;
 	
 }
 
@@ -989,6 +1064,7 @@ uint8_t ESP32_Main_Screen_Display_Update(void){
 		ESP32_Buffer_Alarms_Status_Set(alarm_status_flags);		
 		/* Alarm events */
 		ESP32_Buffer_Alarms_Events_Set(alarm_event_flags);
+		alarm_event_flags = 0;
 				
 		seq_state++;		
 				
@@ -1214,6 +1290,7 @@ uint8_t ESP32_Alarm_Screen_Display_Update(void){
 		ESP32_Buffer_Alarms_Status_Set(alarm_status_flags);
 		/* Alarm events */
 		ESP32_Buffer_Alarms_Events_Set(alarm_event_flags);
+		alarm_event_flags = 0;
 		
 		seq_state++;
 		
@@ -1231,7 +1308,7 @@ uint8_t ESP32_Alarm_Screen_Display_Update(void){
 		
 		temp = ESP32_Operation_Mode_Write();
 		if(temp == DATA_COMM_SUCCESS){
-			seq_state = 14;//seq_state++;
+			seq_state = seq_state++;
 		}else if(temp == DATA_COMM_FAIL){
 			seq_state = 14;
 		}else{
@@ -1362,7 +1439,7 @@ uint8_t ESP32_Alarm_Screen_Display_Update(void){
 		
 	case 13:
 	
-		temp = ESP32_Epaper_Screen01_Update();
+		temp = ESP32_Epaper_Screen02_Update();
 		if(temp == DATA_COMM_SUCCESS){
 			seq_state++;
 		}else if(temp == DATA_COMM_FAIL){
@@ -1496,3 +1573,430 @@ uint8_t ESP32_Calibration_Screen_Display_Update(void){
 	
 }
 
+
+uint8_t Wifi_Connection_Sequence(void){
+	
+	static uint8_t seq_state = 0;
+	uint8_t result = SEQUENCE_IN_PROCESS;
+	uint8_t temp;
+	uint32_t new_hh;
+	uint8_t new_mm, new_ss;
+	uint8_t new_date[3];
+	uint8_t new_time[3];
+	
+	switch(seq_state){
+		
+	case 0:
+		/* System mode */
+		ESP32_Buffer_Operation_Mode_Set(system_mode);
+		/* Battery level */
+		ESP32_Buffer_Battery_Level_Set(Battery_Level_Get());
+		/* Alarm setpoints */
+		ESP32_Buffer_Alarm1_Setpoint_Set(Alarm1_Setpoint_Get());
+		ESP32_Buffer_Alarm2_Setpoint_Set(Alarm2_Setpoint_Get());
+		ESP32_Buffer_Alarm3_Setpoint_Set(Alarm3_Setpoint_Get());
+		/* Alarm counters */
+		Alarm1_Time_Get(&new_hh, &new_mm, &new_ss);
+		ESP32_Buffer_Alarm1_Counter_Set(new_hh);
+		Alarm2_Time_Get(&new_hh, &new_mm, &new_ss);
+		ESP32_Buffer_Alarm2_Counter_Set(new_hh);
+		Alarm3_Time_Get(&new_hh, &new_mm, &new_ss);
+		ESP32_Buffer_Alarm3_Counter_Set(new_hh);
+		/* General motor counter */
+		Working_Time_Get(&new_hh, &new_mm, &new_ss);
+		ESP32_Buffer_Motor_Counter_Set(new_hh);
+		/* Date and time */
+		cli();
+		Soft_RTC1_Get_Date(new_date, new_date + 1, new_date + 2);
+		Soft_RTC1_Get_Time(new_time, new_time + 1, new_time + 2);
+		sei();
+		ESP32_Buffer_Date_And_Time_Set(new_date, new_time);
+		/* Alarm status */
+		ESP32_Buffer_Alarms_Status_Set(alarm_status_flags);
+		/* Alarm events */
+		ESP32_Buffer_Alarms_Events_Set(alarm_event_flags);
+		
+		seq_state++;
+		
+		break;
+		
+	case 1:
+		temp = ESP32_Turn_On();
+		if(temp == DATA_COMM_SUCCESS){
+			seq_state++;
+		}
+		break;
+
+
+	case 2:
+		
+		temp = ESP32_Operation_Mode_Write();
+		if(temp == DATA_COMM_SUCCESS){
+			seq_state++;
+		}else if(temp == DATA_COMM_FAIL){
+			seq_state = 23;
+		}else{
+			//Does nothing
+		}
+		break;
+
+		
+	case 3:
+		
+		temp = ESP32_Battery_Level_Status_Write();
+		if(temp == DATA_COMM_SUCCESS){
+			seq_state++;
+		}else if(temp == DATA_COMM_FAIL){
+			seq_state = 23;
+		}else{
+			//Does nothing
+		}
+		break;
+		
+	case 4:
+		
+		temp = ESP32_Alarm1_Setpoint_Write();
+		if(temp == DATA_COMM_SUCCESS){
+			seq_state++;
+		}else if(temp == DATA_COMM_FAIL){
+			seq_state = 23;
+		}else{
+			//Does nothing
+		}
+		break;
+		
+	case 5:
+		
+		temp = ESP32_Alarm1_Counter_Write();
+		if(temp == DATA_COMM_SUCCESS){
+			seq_state++;
+		}else if(temp == DATA_COMM_FAIL){
+			seq_state = 23;
+		}else{
+			//Does nothing
+		}
+		break;
+		
+	case 6:
+		
+		temp = ESP32_Alarm2_Setpoint_Write();
+		if(temp == DATA_COMM_SUCCESS){
+			seq_state++;
+		}else if(temp == DATA_COMM_FAIL){
+			seq_state = 23;
+		}else{
+			//Does nothing
+		}
+		break;
+		
+	case 7:
+		
+		temp = ESP32_Alarm2_Counter_Write();
+		if(temp == DATA_COMM_SUCCESS){
+			seq_state++;
+		}else if(temp == DATA_COMM_FAIL){
+			seq_state = 23;
+		}else{
+			//Does nothing
+		}
+		break;
+		
+	case 8:
+		
+		temp = ESP32_Alarm3_Setpoint_Write();
+		if(temp == DATA_COMM_SUCCESS){
+			seq_state++;
+		}else if(temp == DATA_COMM_FAIL){
+			seq_state = 23;
+		}else{
+			//Does nothing
+		}
+		break;
+		
+	case 9:
+		
+		temp = ESP32_Alarm3_Counter_Write();
+		if(temp == DATA_COMM_SUCCESS){
+			seq_state++;
+		}else if(temp == DATA_COMM_FAIL){
+			seq_state = 23;
+		}else{
+			//Does nothing
+		}
+		break;
+		
+	case 10:
+		
+		temp = ESP32_Motor_Counter_Write();
+		if(temp == DATA_COMM_SUCCESS){
+			seq_state++;
+		}else if(temp == DATA_COMM_FAIL){
+			seq_state = 23;
+		}else{
+			//Does nothing
+		}
+		break;
+		
+	case 11:
+		
+		temp = ESP32_Date_And_Time_Write();
+		if(temp == DATA_COMM_SUCCESS){
+			seq_state++;
+		}else if(temp == DATA_COMM_FAIL){
+			seq_state = 23;
+		}else{
+			//Does nothing
+		}
+		break;
+		
+	case 12:
+		
+		temp = ESP32_Alarms_Status_Write();
+		if(temp == DATA_COMM_SUCCESS){
+			seq_state++;			
+		}else if(temp == DATA_COMM_FAIL){
+			seq_state = 23;
+		}else{
+			//Does nothing
+		}
+		break;
+		
+	case 13:
+		
+		temp = ESP32_Epaper_Screen01_Update();
+		if(temp == DATA_COMM_SUCCESS){
+			seq_state++;
+		}else if(temp == DATA_COMM_FAIL){
+			seq_state = 23;
+		}else{
+			//Does nothing
+		}
+		break;
+		
+	case 14:
+	
+		temp = ESP32_WiFi_Enable();
+		if(temp == DATA_COMM_SUCCESS){
+			seq_state++;
+		}else if(temp == DATA_COMM_FAIL){
+			seq_state = 23;
+		}else{
+			//Does nothing
+		}
+		break;		
+	
+	case 15:
+	
+		if(system_flags & ((uint32_t)1 << SHOW_MAIN_SCREEN_FLAG)){
+			cli();
+			system_flags &= ~((uint32_t)1 << SHOW_MAIN_SCREEN_FLAG);
+			sei();
+			seq_state = 2;
+		}else if(system_flags & ((uint32_t)1 << ESP32_WEB_PARAMETERS_CHECK_FLAG)){
+			cli();
+			system_flags &= ~((uint32_t)1 << ESP32_WEB_PARAMETERS_CHECK_FLAG);
+			sei();
+			seq_state++;		
+		}else{
+			//Does nothing
+		}
+		
+		break;	
+	
+		
+	case 16:
+	
+		temp = ESP32_Parameters_Status_Read();
+		if(temp == DATA_COMM_SUCCESS){
+			parameter_status_flag = ESP32_Buffer_Parameters_Status_Get();
+			seq_state++;
+		}else if(temp == DATA_COMM_FAIL){
+			seq_state = 23;
+		}else{
+			//Does nothing
+		}
+		break;			
+		
+	case 17:
+	
+		if(parameter_status_flag & (1 << PARAM_STATUS_AL1_EN_BIT)){
+			alarm_status_flags |= (1 << E1_FLAG);
+		}else{
+			alarm_status_flags &= ~(1 << E1_FLAG);
+		}
+
+		if(parameter_status_flag & (1 << PARAM_STATUS_AL2_EN_BIT)){
+			alarm_status_flags |= (1 << E2_FLAG);
+		}else{
+			alarm_status_flags &= ~(1 << E2_FLAG);
+		}		
+		
+		if(parameter_status_flag & (1 << PARAM_STATUS_AL3_EN_BIT)){
+			alarm_status_flags |= (1 << E3_FLAG);
+		}else{
+			alarm_status_flags &= ~(1 << E3_FLAG);
+		}
+		
+		if(parameter_status_flag & (1 << PARAM_STATUS_AL1_RST_BIT)){
+			cli();
+			parameter_status_flag &= ~(1 << PARAM_STATUS_AL1_RST_BIT);
+			system_flags &= ~(1 << ALARM_01_REACHED_FLAG);
+			Alarm1_Time_Reset();	
+			sei();
+		}
+		
+		if(parameter_status_flag & (1 << PARAM_STATUS_AL2_RST_BIT)){
+			cli();
+			parameter_status_flag &= ~(1 << PARAM_STATUS_AL2_RST_BIT);
+			system_flags &= ~(1 << ALARM_02_REACHED_FLAG);
+			Alarm2_Time_Reset();
+			sei();
+		}
+		
+		if(parameter_status_flag & (1 << PARAM_STATUS_AL3_RST_BIT)){
+			cli();
+			parameter_status_flag &= ~(1 << PARAM_STATUS_AL3_RST_BIT);
+			system_flags &= ~(1 << ALARM_03_REACHED_FLAG);
+			Alarm3_Time_Reset();
+			sei();
+		}			
+		
+		if(parameter_status_flag & (1 << PARAM_STATUS_MOT_RST_BIT)){
+			cli();
+			parameter_status_flag &= ~(1 << PARAM_STATUS_MOT_RST_BIT);
+			Working_Time_Reset();
+			sei();
+		}
+			
+		if(parameter_status_flag & PARAM_STATUS_MODE_BIT){
+			parameter_status_flag &= ~(1 << PARAM_STATUS_MODE_BIT);
+			seq_state = 18;
+		}else if(parameter_status_flag & PARAM_STATUS_D_AND_T_BIT){
+			parameter_status_flag &= ~(1 << PARAM_STATUS_D_AND_T_BIT);
+			seq_state = 19;
+		}else if(parameter_status_flag & (1 << PARAM_STATUS_AL1_SP_BIT)){
+			parameter_status_flag &= ~(1 << PARAM_STATUS_AL1_SP_BIT);
+			seq_state = 20;		
+		}else if(parameter_status_flag & (1 << PARAM_STATUS_AL2_SP_BIT)){
+			parameter_status_flag &= ~(1 << PARAM_STATUS_AL2_SP_BIT);
+			seq_state = 21;
+		}else if(parameter_status_flag & (1 << PARAM_STATUS_AL3_SP_BIT)){
+			parameter_status_flag &= ~(1 << PARAM_STATUS_AL3_SP_BIT);
+			seq_state = 22;
+		}else if(parameter_status_flag & (1 << PARAM_WIFI_OFF_BIT)){
+			parameter_status_flag &= ~(1 << PARAM_WIFI_OFF_BIT);
+			seq_state = 23;
+		}else{
+			seq_state = 15;
+		}
+		break;		
+		
+	case 18:	
+
+		temp = ESP32_Operation_Mode_Read();
+		if(temp == DATA_COMM_SUCCESS){
+			system_mode = ESP32_Buffer_Operation_Mode_Get();
+			seq_state = 17;
+		}else if(temp == DATA_COMM_FAIL){
+			seq_state = 23;
+		}else{
+			//Does nothing
+		}
+		break;
+		
+	case 19:
+
+		temp = ESP32_Date_And_Time_Read();
+		if(temp == DATA_COMM_SUCCESS){
+			ESP32_Buffer_Date_And_Time_Get(new_date, new_time);
+			cli();
+			Soft_RTC1_Set_Date(new_date[0], new_date[1], new_date[2]);
+			Soft_RTC1_Set_Time(new_time[0], new_time[1], new_time[2]);
+			sei();
+			seq_state = 17;
+		}else if(temp == DATA_COMM_FAIL){
+			seq_state = 23;
+		}else{
+			//Does nothing
+		}
+		break;	
+		
+	case 20:	
+		
+		temp = ESP32_Alarm1_Setpoint_Read();
+		if(temp == DATA_COMM_SUCCESS){
+			cli();
+			Alarm1_Setpoint_Set(ESP32_Buffer_Alarm1_Setpoint_Get());
+			sei();
+			seq_state = 17;
+		}else if(temp == DATA_COMM_FAIL){
+			seq_state = 23;
+		}else{
+			//Does nothing
+		}
+		break;	
+		
+	case 21:
+		
+		temp = ESP32_Alarm2_Setpoint_Read();
+		if(temp == DATA_COMM_SUCCESS){
+			cli();
+			Alarm2_Setpoint_Set(ESP32_Buffer_Alarm2_Setpoint_Get());
+			sei();		
+			seq_state = 17;
+		}else if(temp == DATA_COMM_FAIL){
+			seq_state = 23;
+		}else{
+			//Does nothing
+		}
+		break;	
+		
+	case 22:
+	
+		temp = ESP32_Alarm3_Setpoint_Read();
+		if(temp == DATA_COMM_SUCCESS){
+			cli();
+			Alarm3_Setpoint_Set(ESP32_Buffer_Alarm3_Setpoint_Get());
+			sei();			
+			seq_state = 17;
+		}else if(temp == DATA_COMM_FAIL){
+			seq_state = 23;
+		}else{
+			//Does nothing
+		}
+		break;
+
+	case 23:
+
+		temp = 0;
+		
+		//temp = ESP32_Turn_Off();
+		//if(temp == DATA_COMM_SUCCESS){
+			//seq_state = 0;
+			//result = SEQUENCE_COMPLETE;
+			//G1_Get_Button_Press(1 << MODE_BUTTON);
+			//G1_Get_Button_Press(1 << WIFI_BUTTON);
+			//
+		//}else if(temp == DATA_COMM_FAIL){
+			//seq_state = 0;
+			//result = SEQUENCE_COMPLETE;
+			//G1_Get_Button_Press(1 << MODE_BUTTON);
+			//G1_Get_Button_Press(1 << WIFI_BUTTON);		
+		//}else{
+			////Does nothing
+		//}
+		
+		seq_state = 0;
+		result = SEQUENCE_COMPLETE;
+		G1_Get_Button_Press(1 << MODE_BUTTON);
+		G1_Get_Button_Press(1 << WIFI_BUTTON);
+		
+		break;
+		
+	default:
+		break;
+		
+	}
+
+	return result;
+}

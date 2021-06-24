@@ -87,7 +87,7 @@
 #define PARAM_STATUS_AL2_RST_BIT				9
 #define PARAM_STATUS_AL3_RST_BIT				10
 #define PARAM_STATUS_MOT_RST_BIT				11
-
+#define PARAM_WIFI_OFF_BIT						12
 
 // Alarm event flags
 #define PROG_ALARM1_EVENT_FLAG						0
@@ -166,7 +166,6 @@ void ESP32_Buffer_Date_And_Time_Get(uint8_t *new_date, uint8_t *new_time);
 uint32_t ESP32_Buffer_Alarm1_Setpoint_Get(void);
 uint32_t ESP32_Buffer_Alarm2_Setpoint_Get(void);
 uint32_t ESP32_Buffer_Alarm3_Setpoint_Get(void);
-
 
 
 #endif /* ESP32_SPI_INTERFACE_H_ */

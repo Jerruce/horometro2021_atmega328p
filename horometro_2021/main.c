@@ -71,6 +71,7 @@ ISR(TIMER2_COMPA_vect){
 	static uint16_t battery_level_measure_count_sec = 0;
 	static uint8_t calibration_count_sec = 0;
 	static uint16_t working_count_sec = 0;
+	static uint8_t web_command_count_sec = 0;
 	
 	system_flags |= ((uint32_t)1 << ESP32_COMM_CHECK_FLAG);
 	
@@ -88,8 +89,15 @@ ISR(TIMER2_COMPA_vect){
 		counter_1_div_32_sec = 0;
 		Soft_RTC1_Update();
 		system_flags |= ((uint32_t)1 << ONE_SECOND_ELAPSED_FLAG);
-
-		/* Measure battery levelevery 15 minutes */
+		
+		/* Check for WIFI  commands entered by the user every 2 seconds */
+		web_command_count_sec++;
+		if(web_command_count_sec >= WEB_PARAMETERS_CHECK_PERIOD_SEC){
+			web_command_count_sec = 0;
+			system_flags |= ((uint32_t)1 << ESP32_WEB_PARAMETERS_CHECK_FLAG);
+		}
+		
+		/* Measure battery level every 15 minutes */
 		battery_level_measure_count_sec++;
 		if(battery_level_measure_count_sec >= BATTERY_MEASURE_PERIOD_SEC){
 			battery_level_measure_count_sec = 0;
