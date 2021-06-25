@@ -1099,7 +1099,6 @@ uint8_t ESP32_Main_Screen_Display_Update(void){
 		ESP32_Buffer_Alarms_Status_Set(alarm_status_flags);		
 		/* Alarm events */
 		ESP32_Buffer_Alarms_Events_Set(alarm_event_flags);
-		alarm_event_flags = 0;
 				
 		seq_state++;		
 				
@@ -1167,9 +1166,9 @@ uint8_t ESP32_Main_Screen_Display_Update(void){
 		temp = ESP32_Alarm2_Setpoint_Write();
 		if(temp == DATA_COMM_SUCCESS){
 			seq_state++;
-			}else if(temp == DATA_COMM_FAIL){
+		}else if(temp == DATA_COMM_FAIL){
 			seq_state = 14;
-			}else{
+		}else{
 			//Does nothing
 		}
 		break;
@@ -1226,6 +1225,7 @@ uint8_t ESP32_Main_Screen_Display_Update(void){
 	
 		temp = ESP32_Date_And_Time_Write();
 		if(temp == DATA_COMM_SUCCESS){
+			alarm_event_flags = 0;
 			seq_state++;
 		}else if(temp == DATA_COMM_FAIL){
 			seq_state = 14;
@@ -1325,7 +1325,6 @@ uint8_t ESP32_Alarm_Screen_Display_Update(void){
 		ESP32_Buffer_Alarms_Status_Set(alarm_status_flags);
 		/* Alarm events */
 		ESP32_Buffer_Alarms_Events_Set(alarm_event_flags);
-		alarm_event_flags = 0;
 		
 		seq_state++;
 		
@@ -1452,6 +1451,7 @@ uint8_t ESP32_Alarm_Screen_Display_Update(void){
 		
 		temp = ESP32_Date_And_Time_Write();
 		if(temp == DATA_COMM_SUCCESS){
+			alarm_event_flags = 0;
 			seq_state++;
 		}else if(temp == DATA_COMM_FAIL){
 			seq_state = 14;
@@ -1780,6 +1780,7 @@ uint8_t Wifi_Connection_Sequence(void){
 		
 		temp = ESP32_Date_And_Time_Write();
 		if(temp == DATA_COMM_SUCCESS){
+			alarm_event_flags = 0;
 			seq_state++;
 		}else if(temp == DATA_COMM_FAIL){
 			seq_state = 24;
