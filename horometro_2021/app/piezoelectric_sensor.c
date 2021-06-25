@@ -71,18 +71,12 @@ uint8_t Piezoelectric_Sensor_Read(void){
 
 void Calib_Time_Count_Update(void){
 	
-	if(Piezoelectric_Sensor_Read()){
-		
-		PORT_ACCEL_SENSING_LED |= (1 << ACCEL_SENSING_LED);
-		
-		calib_time_step_counter++;
-		if(calib_time_step_counter >= HOROMETER_SECOND_N_STEPS){
-			calib_time_step_counter = 0;
-			calib_time_seconds++;
-		}
-		}else{
-		PORT_ACCEL_SENSING_LED &= ~(1 << ACCEL_SENSING_LED);
+	calib_time_step_counter++;
+	if(calib_time_step_counter >= HOROMETER_SECOND_N_STEPS){
+		calib_time_step_counter = 0;
+		calib_time_seconds++;
 	}
+
 }
 
 
@@ -98,23 +92,19 @@ uint32_t Calib_Time_Get(void){
 
 void Working_Time_Count_Update(void){
 	
-	if(Piezoelectric_Sensor_Read()){
-	
-		working_time_step_counter++;
-		if(working_time_step_counter >= HOROMETER_SECOND_N_STEPS){
-			working_time_step_counter = 0;
-			working_time_seconds++;
-			if(working_time_seconds >= 60){
-				working_time_seconds = 0;
-				working_time_minutes++;
-				if(working_time_minutes >= 60){
-					working_time_minutes = 0;
-					working_time_hours++;
-				}
+	working_time_step_counter++;
+	if(working_time_step_counter >= HOROMETER_SECOND_N_STEPS){
+		working_time_step_counter = 0;
+		working_time_seconds++;
+		if(working_time_seconds >= 60){
+			working_time_seconds = 0;
+			working_time_minutes++;
+			if(working_time_minutes >= 60){
+				working_time_minutes = 0;
+				working_time_hours++;
 			}
 		}
 	}
-	
 }
 
 

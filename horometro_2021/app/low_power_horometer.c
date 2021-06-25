@@ -253,8 +253,14 @@ void Vibration_Sense_Calibration_Sequence(void){
 			cli();
 			system_flags &= ~((uint32_t)1 << VIBRATION_SENSE_FLAG);
 			sei();
-		
-			Calib_Time_Count_Update();
+			
+			if(Piezoelectric_Sensor_Read()){
+				PORT_ACCEL_SENSING_LED |= (1 << ACCEL_SENSING_LED);
+				Calib_Time_Count_Update();	
+			}else{
+				PORT_ACCEL_SENSING_LED &= ~(1 << ACCEL_SENSING_LED);
+			}	
+			
 		}		
 		
 		
@@ -399,20 +405,21 @@ void Vibration_Sense_Only_Sequence(void){
 			system_flags &= ~((uint32_t)1 << VIBRATION_SENSE_FLAG);
 			sei();
 		
-			Working_Time_Count_Update();
-		
-			if(alarm_status_flags & (1 << E1_FLAG)){
-				Alarm1_Time_Count_Update();
-			}
-
-			if(alarm_status_flags & (1 << E2_FLAG)){
-				Alarm2_Time_Count_Update();
-			}
-		
-			if(alarm_status_flags & (1 << E3_FLAG)){
-				Alarm3_Time_Count_Update();
-			}
-		
+			if(Piezoelectric_Sensor_Read()){
+				
+				Working_Time_Count_Update();
+				if(alarm_status_flags & (1 << E1_FLAG)){
+					Alarm1_Time_Count_Update();
+				}
+				if(alarm_status_flags & (1 << E2_FLAG)){
+					Alarm2_Time_Count_Update();
+				}
+				if(alarm_status_flags & (1 << E3_FLAG)){
+					Alarm3_Time_Count_Update();
+				}
+				
+			}		
+				
 		}
 	
 	
@@ -638,10 +645,11 @@ void Vibration_Sense_Current_Sense_And_Motor_Speed_Sequence(void){
 		
 		/* Read current sensor */
 		if(system_flags & ((uint32_t)1 << CURRENT_SENSE_FLAG)){
+			
 			cli();
 			system_flags &= ~((uint32_t)1 << CURRENT_SENSE_FLAG);
 			sei();
-		
+			
 			Current_Measure();
 			current_sense_sample_counter++;
 			if(current_sense_sample_counter >= CURRENT_RMS_CALC_N_SAMPLES){
@@ -654,9 +662,9 @@ void Vibration_Sense_Current_Sense_And_Motor_Speed_Sequence(void){
 			
 				if(new_current > OVERCURRENT_UPPER_THRESHOLD){
 					system_flags |= ((uint32_t)1 << OVERCURRENT_ALARM_FLAG);
-					}else if(new_current < OVERCURRENT_UPPER_THRESHOLD){
+				}else if(new_current < OVERCURRENT_LOWER_THRESHOLD){
 					system_flags &= ~((uint32_t)1 << OVERCURRENT_ALARM_FLAG);
-					}else{
+				}else{
 					//Does nothing
 				}
 			
@@ -689,19 +697,21 @@ void Vibration_Sense_Current_Sense_And_Motor_Speed_Sequence(void){
 			system_flags &= ~((uint32_t)1 << VIBRATION_SENSE_FLAG);
 			sei();
 		
-			Working_Time_Count_Update();
-		
-			if(parameter_status_flag & (1 << PARAM_STATUS_AL1_EN_BIT)){
-				Alarm1_Time_Count_Update();
+			if(Piezoelectric_Sensor_Read()){
+				
+				Working_Time_Count_Update();
+				if(alarm_status_flags & (1 << E1_FLAG)){
+					Alarm1_Time_Count_Update();
+				}
+				if(alarm_status_flags & (1 << E2_FLAG)){
+					Alarm2_Time_Count_Update();
+				}
+				if(alarm_status_flags & (1 << E3_FLAG)){
+					Alarm3_Time_Count_Update();
+				}
+				
 			}
 
-			if(parameter_status_flag & (1 << PARAM_STATUS_AL2_EN_BIT)){
-				Alarm2_Time_Count_Update();
-			}
-		
-			if(parameter_status_flag & (1 << PARAM_STATUS_AL2_EN_BIT)){
-				Alarm3_Time_Count_Update();
-			}
 		}
 		
 		/* Measure the battery charge level */
@@ -761,6 +771,7 @@ void Vibration_Sense_Current_Sense_And_Motor_Speed_Sequence(void){
 	switch(sequence_state){
 		
 	case 0:
+	
 		/* Enable the vibration sensor */
 		General_Power_Supply_Circuit_On();
 		Piezoelectric_Circuit_PSU_On();
@@ -1608,6 +1619,9 @@ uint8_t Wifi_Connection_Sequence(void){
 	uint8_t new_date[3];
 	uint8_t new_time[3];
 	
+	static uint8_t wifi_connected = 0;
+	
+	
 	switch(seq_state){
 		
 	case 0:
@@ -1790,7 +1804,11 @@ uint8_t Wifi_Connection_Sequence(void){
 		
 		temp = ESP32_Epaper_Screen01_Update();
 		if(temp == DATA_COMM_SUCCESS){
-			seq_state++;
+			if(wifi_connected){
+				seq_state = 15;
+			}else{
+				seq_state++;
+			}
 			cli();
 			system_flags &= ~((uint32_t)1 << SHOW_MAIN_OR_ALARM_SCREEN_FLAG);
 			sei();			
@@ -1808,6 +1826,7 @@ uint8_t Wifi_Connection_Sequence(void){
 	
 		temp = ESP32_WiFi_Enable();
 		if(temp == DATA_COMM_SUCCESS){
+			wifi_connected = 1;
 			seq_state++;
 		}else if(temp == DATA_COMM_FAIL){
 			seq_state = 24;
@@ -1818,16 +1837,21 @@ uint8_t Wifi_Connection_Sequence(void){
 	
 	case 15:
 	
+		//if(system_flags & ((uint32_t)1 << ESP32_WEB_PARAMETERS_CHECK_FLAG)){
+			//seq_state++;
+		//}else if(system_flags & ((uint32_t)1 << SHOW_MAIN_OR_ALARM_SCREEN_FLAG)){
+			//seq_state = 0;		
+		//}else{
+			////Does nothing
+		//}
+		
 		if(system_flags & ((uint32_t)1 << SHOW_MAIN_OR_ALARM_SCREEN_FLAG)){
-			seq_state = 2;
+			seq_state = 0;
 		}else if(system_flags & ((uint32_t)1 << ESP32_WEB_PARAMETERS_CHECK_FLAG)){
-			cli();
-			system_flags &= ~((uint32_t)1 << ESP32_WEB_PARAMETERS_CHECK_FLAG);
-			sei();
-			seq_state++;		
+			seq_state++;
 		}else{
 			//Does nothing
-		}
+		}		
 		
 		break;	
 	
@@ -1837,8 +1861,14 @@ uint8_t Wifi_Connection_Sequence(void){
 		temp = ESP32_Parameters_Status_Read();
 		if(temp == DATA_COMM_SUCCESS){
 			parameter_status_flag = ESP32_Buffer_Parameters_Status_Get();
+			cli();
+			system_flags &= ~((uint32_t)1 << ESP32_WEB_PARAMETERS_CHECK_FLAG);
+			sei();			
 			seq_state++;
 		}else if(temp == DATA_COMM_FAIL){
+			cli();
+			system_flags &= ~((uint32_t)1 << ESP32_WEB_PARAMETERS_CHECK_FLAG);
+			sei();
 			seq_state = 24;
 		}else{
 			//Does nothing
@@ -2014,20 +2044,25 @@ uint8_t Wifi_Connection_Sequence(void){
 		//temp = ESP32_Turn_Off();
 		//if(temp == DATA_COMM_SUCCESS){
 			//seq_state = 0;
+			//wifi_connected = 0;
 			//result = SEQUENCE_COMPLETE;
 			//G1_Get_Button_Press(1 << MODE_BUTTON);
+			//G1_Get_Button_Long(1 << MODE_BUTTON);
 			//G1_Get_Button_Press(1 << WIFI_BUTTON);
 			//
 		//}else if(temp == DATA_COMM_FAIL){
 			//seq_state = 0;
+			//wifi_connected = 0;
 			//result = SEQUENCE_COMPLETE;
 			//G1_Get_Button_Press(1 << MODE_BUTTON);
+			//G1_Get_Button_Long(1 << MODE_BUTTON);
 			//G1_Get_Button_Press(1 << WIFI_BUTTON);		
 		//}else{
 			////Does nothing
 		//}
 		
 		seq_state = 0;
+		wifi_connected = 0;
 		result = SEQUENCE_COMPLETE;
 		G1_Get_Button_Press(1 << MODE_BUTTON);
 		G1_Get_Button_Long(1 << MODE_BUTTON);
