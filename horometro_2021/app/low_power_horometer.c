@@ -266,25 +266,26 @@ void Vibration_Sense_Calibration_Sequence(void){
 			sei();
 		
 			Battery_Level_Measure();
-		}		
+		}	
 		
-	}
-
-
-	/* Read DIP switch (ignore buttons) */
-	if(system_flags & ((uint32_t)1 << BUTTON_READ_FLAG)){
 		
-		cli();
-		system_flags &= ~((uint32_t)1 << BUTTON_READ_FLAG);
-		sei();
+		/* Read DIP switch (ignore buttons) */
+		if(system_flags & ((uint32_t)1 << BUTTON_READ_FLAG)){
 		
-		if(!(g1_button_state & (1 << DIP_SW_CALIB_MODE))){
 			cli();
-			system_flags |= ((uint32_t)1 << CHANGE_OPERATION_MODE_FLAG);
+			system_flags &= ~((uint32_t)1 << BUTTON_READ_FLAG);
 			sei();
-		}
+		
+			if(!(g1_button_state & (1 << DIP_SW_CALIB_MODE))){
+				cli();
+				system_flags |= ((uint32_t)1 << CHANGE_OPERATION_MODE_FLAG);
+				sei();
+			}
+		}		
+			
+		
 	}
-	
+
 
 	switch(sequence_state){
 	
@@ -314,16 +315,12 @@ void Vibration_Sense_Calibration_Sequence(void){
 		break;
 			
 	case 1:	
-	
+
 		if(system_flags & ((uint32_t)1 << SHOW_CALIBRATION_SCREEN_FLAG)){
 			
 			sequence_state = 3;
 			
 		}else if(system_flags & ((uint32_t)1 << CHANGE_OPERATION_MODE_FLAG)){	
-			
-			cli();
-			system_flags &= ~((uint32_t)1 << CHANGE_OPERATION_MODE_FLAG);
-			sei();
 			
 			sequence_state++;
 		}
@@ -334,13 +331,16 @@ void Vibration_Sense_Calibration_Sequence(void){
 
 		/* Clean buttons */
 		G1_Get_Button_Press(1 << MODE_BUTTON);
+		G1_Get_Button_Long(1 << MODE_BUTTON);
 		G1_Get_Button_Press(1 << WIFI_BUTTON);
 	
 		/* Turn-off calibration LED */
 		PORT_ACCEL_SENSING_LED &= ~(1 << ACCEL_SENSING_LED);
 		/* Go back to the previous mode */
 		System_Mode_Load();
-		
+		cli();
+		system_flags &= ~((uint32_t)1 << CHANGE_OPERATION_MODE_FLAG);
+		sei();
 		sequence_state = 0;
 		measure_enable = 0;
 		
@@ -428,59 +428,54 @@ void Vibration_Sense_Only_Sequence(void){
 	
 		Check_For_Alarm_Events();
 		if(alarm_event_flags){
+			cli();			
 			system_flags &= ~((uint32_t)1 << TOGGLE_SCREEN_INDEX_FLAG);
-			system_flags |= ((uint32_t)1 << SHOW_ALARM_SCREEN_FLAG);
-			system_flags &= ~((uint32_t)1 << SHOW_MAIN_SCREEN_FLAG);
+			system_flags |= ((uint32_t)1 << SHOW_MAIN_OR_ALARM_SCREEN_FLAG);			
+			sei();
 		}		
 		
 		
-	}
-
-
-	/* Read DIP switch and buttons */
-	if(system_flags & ((uint32_t)1 << BUTTON_READ_FLAG)){
+		/* Read DIP switch and buttons */
+		if(system_flags & ((uint32_t)1 << BUTTON_READ_FLAG)){
 		
-		cli();
-		system_flags &= ~((uint32_t)1 << BUTTON_READ_FLAG);
-		sei();
+			cli();
+			system_flags &= ~((uint32_t)1 << BUTTON_READ_FLAG);
+			sei();
 		
-		if(!(system_flags & ((uint32_t)1 << WIFI_COMM_EN_FLAG))){
+			if(!(system_flags & ((uint32_t)1 << WIFI_COMM_EN_FLAG))){
 			
-			if(g1_button_state & (1 << DIP_SW_CALIB_MODE)){
-				cli();
-				system_flags |= ((uint32_t)1 << CHANGE_TO_CALIB_MODE_FLAG);
-				sei();
-			}else if(G1_Get_Button_Long(1 << MODE_BUTTON)){
-				cli();
-				system_flags ^= ((uint32_t)1 << TOGGLE_SCREEN_INDEX_FLAG);
-				if(system_flags & ((uint32_t)1 << TOGGLE_SCREEN_INDEX_FLAG)){
-					system_flags |= ((uint32_t)1 << SHOW_ALARM_SCREEN_FLAG);
-					system_flags &= ~((uint32_t)1 << SHOW_MAIN_SCREEN_FLAG);
+				if(g1_button_state & (1 << DIP_SW_CALIB_MODE)){
+					cli();
+					system_flags |= ((uint32_t)1 << CHANGE_TO_CALIB_MODE_FLAG);
+					sei();
+				}else if(G1_Get_Button_Long(1 << MODE_BUTTON)){
+					cli();
+					system_flags ^= ((uint32_t)1 << TOGGLE_SCREEN_INDEX_FLAG);
+					system_flags |= ((uint32_t)1 << SHOW_MAIN_OR_ALARM_SCREEN_FLAG);
+					sei();
+				}else if(G1_Get_Button_Short(1 << MODE_BUTTON)){
+					cli();
+					system_flags |= ((uint32_t)1 << CHANGE_OPERATION_MODE_FLAG);
+					sei();
+				}else if(G1_Get_Button_Press(1 << WIFI_BUTTON)){
+					cli();
+					system_flags |= ((uint32_t)1 << WIFI_COMM_EN_FLAG);
+					sei();
 				}else{
-					system_flags &= ~((uint32_t)1 << SHOW_ALARM_SCREEN_FLAG);
-					system_flags |= ((uint32_t)1 << SHOW_MAIN_SCREEN_FLAG);			
+					// Does nothing
 				}
-				sei();
-			}else if(G1_Get_Button_Short(1 << MODE_BUTTON)){
-				cli();
-				system_flags |= ((uint32_t)1 << CHANGE_OPERATION_MODE_FLAG);
-				sei();
-			}else if(G1_Get_Button_Press(1 << WIFI_BUTTON)){
-				cli();
-				system_flags |= ((uint32_t)1 << WIFI_COMM_EN_FLAG);
-				sei();
-			}else{
-				// Does nothing
+			
 			}
-			
+		
 		}
-			
+		
 	}
-	
-	
+
+
 	switch(sequence_state){
 		
 	case 0:
+	
 		/* Enable the vibration sensor */
 		General_Power_Supply_Circuit_On();
 		Piezoelectric_Circuit_PSU_On();
@@ -490,9 +485,9 @@ void Vibration_Sense_Only_Sequence(void){
 		cli();
 		/* Clear the INT0 flag */
 		EIFR |= (1 << INTF0);
-		system_flags |= ((uint32_t)1 << SHOW_MAIN_SCREEN_FLAG);
+		system_flags |= ((uint32_t)1 << SHOW_MAIN_OR_ALARM_SCREEN_FLAG);
 		sei();
-		
+
 		measure_enable = 1;							
 		sequence_state++;
 			
@@ -500,25 +495,17 @@ void Vibration_Sense_Only_Sequence(void){
 		
 	case 1:
 
-		if(system_flags & ((uint32_t)1 << SHOW_MAIN_SCREEN_FLAG)){
-			cli();
-			system_flags &= ~((uint32_t)1 << SHOW_MAIN_SCREEN_FLAG);
-			sei();			
-			sequence_state = 4;
-		}else if(system_flags & ((uint32_t)1 << SHOW_ALARM_SCREEN_FLAG)){
-			cli();
-			system_flags &= ~((uint32_t)1 << SHOW_ALARM_SCREEN_FLAG);
-			sei();			
-			sequence_state = 5;
+		if(system_flags & ((uint32_t)1 << SHOW_MAIN_OR_ALARM_SCREEN_FLAG)){
+			
+			if(system_flags & ((uint32_t)1 << TOGGLE_SCREEN_INDEX_FLAG)){
+				sequence_state = 5;
+			}else{
+				sequence_state = 4;			
+			}
+			
 		}else if(system_flags & ((uint32_t)1 << CHANGE_TO_CALIB_MODE_FLAG)){
-			cli();
-			system_flags &= ~((uint32_t)1 << CHANGE_TO_CALIB_MODE_FLAG);
-			sei();
 			sequence_state++;
 		}else if(system_flags & ((uint32_t)1 << CHANGE_OPERATION_MODE_FLAG)){
-			cli();
-			system_flags &= ~((uint32_t)1 << CHANGE_OPERATION_MODE_FLAG);
-			sei();
 			sequence_state = 3;
 		}else if(system_flags & ((uint32_t)1 << WIFI_COMM_EN_FLAG)){
 			sequence_state = 6;			
@@ -538,6 +525,9 @@ void Vibration_Sense_Only_Sequence(void){
 		/* Save current state and go to testing mode */
 		System_Mode_Save();
 		system_mode = VIBRATION_SENSOR_CALIBRATION_MODE;	
+		cli();
+		system_flags &= ~((uint32_t)1 << CHANGE_TO_CALIB_MODE_FLAG);
+		sei();		
 		sequence_state = 0;	
 		measure_enable = 0;
 	
@@ -551,7 +541,10 @@ void Vibration_Sense_Only_Sequence(void){
 		G1_Get_Button_Press(1 << WIFI_BUTTON);
 	
 		/* Go to Vibration + Current Mode */
-		system_mode = VIBRATION_CURRENT_PICKUP_SENSOR_MODE;	
+		system_mode = VIBRATION_CURRENT_PICKUP_SENSOR_MODE;		
+		cli();
+		system_flags &= ~((uint32_t)1 << CHANGE_OPERATION_MODE_FLAG);
+		sei();		
 		sequence_state = 0;
 		measure_enable = 0;
 	
@@ -568,6 +561,9 @@ void Vibration_Sense_Only_Sequence(void){
 			/* Print the main screen */
 			if(ESP32_Main_Screen_Display_Update() == SEQUENCE_COMPLETE){
 				/* Go back to the normal mode */
+				cli();
+				system_flags &= ~((uint32_t)1 << SHOW_MAIN_OR_ALARM_SCREEN_FLAG);
+				sei();
 				sequence_state = 1;			
 			}
 		}
@@ -584,7 +580,9 @@ void Vibration_Sense_Only_Sequence(void){
 			
 			/* Print the alarm screen */
 			if(ESP32_Alarm_Screen_Display_Update() == SEQUENCE_COMPLETE){
-		
+				cli();
+				system_flags &= ~((uint32_t)1 << SHOW_MAIN_OR_ALARM_SCREEN_FLAG);
+				sei();
 				/* Go back to the normal mode */
 				sequence_state = 1;
 			}
@@ -668,11 +666,11 @@ void Vibration_Sense_Current_Sense_And_Motor_Speed_Sequence(void){
 						cli();
 						system_flags |= ((uint32_t)1 << MOTOR_STUCK_ALARM_FLAG);
 						sei();
-						}else if(new_current < MOTOR_STUCK_CURRENT_LOWER_THRESHOLD){
+					}else if(new_current < MOTOR_STUCK_CURRENT_LOWER_THRESHOLD){
 						cli();
 						system_flags &= ~((uint32_t)1 << MOTOR_STUCK_ALARM_FLAG);
 						sei();
-						}else{
+					}else{
 						//Does nothing
 					}
 				
@@ -719,54 +717,47 @@ void Vibration_Sense_Current_Sense_And_Motor_Speed_Sequence(void){
 		Check_For_Alarm_Events();
 		if(alarm_event_flags){
 			system_flags &= ~((uint32_t)1 << TOGGLE_SCREEN_INDEX_FLAG);
-			system_flags |= ((uint32_t)1 << SHOW_ALARM_SCREEN_FLAG);
-			system_flags &= ~((uint32_t)1 << SHOW_MAIN_SCREEN_FLAG);
+			system_flags |= ((uint32_t)1 << SHOW_MAIN_OR_ALARM_SCREEN_FLAG);
 		}		
 		
-	}
 
-	
-
-	/* Read DIP switch and buttons */
-	if(system_flags & ((uint32_t)1 << BUTTON_READ_FLAG)){
-			
-		cli();
-		system_flags &= ~((uint32_t)1 << BUTTON_READ_FLAG);
-		sei();
-			
-		if(!(system_flags & ((uint32_t)1 << WIFI_COMM_EN_FLAG))){
+		/* Read DIP switch and buttons */
+		if(system_flags & ((uint32_t)1 << BUTTON_READ_FLAG)){
 		
-			if(g1_button_state & (1 << DIP_SW_CALIB_MODE)){
-				cli();
-				system_flags |= ((uint32_t)1 << CHANGE_TO_CALIB_MODE_FLAG);
-				sei();
-			}else if(G1_Get_Button_Long(1 << MODE_BUTTON)){
-				cli();
-				system_flags ^= ((uint32_t)1 << TOGGLE_SCREEN_INDEX_FLAG);
-				if(system_flags & ((uint32_t)1 << TOGGLE_SCREEN_INDEX_FLAG)){
-					system_flags |= ((uint32_t)1 << SHOW_ALARM_SCREEN_FLAG);
-					system_flags &= ~((uint32_t)1 << SHOW_MAIN_SCREEN_FLAG);
+			cli();
+			system_flags &= ~((uint32_t)1 << BUTTON_READ_FLAG);
+			sei();
+		
+			if(!(system_flags & ((uint32_t)1 << WIFI_COMM_EN_FLAG))){
+			
+				if(g1_button_state & (1 << DIP_SW_CALIB_MODE)){
+					cli();
+					system_flags |= ((uint32_t)1 << CHANGE_TO_CALIB_MODE_FLAG);
+					sei();
+				}else if(G1_Get_Button_Long(1 << MODE_BUTTON)){
+					cli();
+					system_flags ^= ((uint32_t)1 << TOGGLE_SCREEN_INDEX_FLAG);
+					system_flags |= ((uint32_t)1 << SHOW_MAIN_OR_ALARM_SCREEN_FLAG);
+					sei();
+				}else if(G1_Get_Button_Short(1 << MODE_BUTTON)){
+					cli();
+					system_flags |= ((uint32_t)1 << CHANGE_OPERATION_MODE_FLAG);
+					sei();
+				}else if(G1_Get_Button_Press(1 << WIFI_BUTTON)){
+					cli();
+					system_flags |= ((uint32_t)1 << WIFI_COMM_EN_FLAG);
+					sei();
 				}else{
-					system_flags &= ~((uint32_t)1 << SHOW_ALARM_SCREEN_FLAG);
-					system_flags |= ((uint32_t)1 << SHOW_MAIN_SCREEN_FLAG);
+					// Does nothing
 				}
-				sei();
-			}else if(G1_Get_Button_Short(1 << MODE_BUTTON)){
-				cli();
-				system_flags |= ((uint32_t)1 << CHANGE_OPERATION_MODE_FLAG);
-				sei();
-			}else if(G1_Get_Button_Press(1 << WIFI_BUTTON)){
-				cli();
-				system_flags |= ((uint32_t)1 << WIFI_COMM_EN_FLAG);
-				sei();
-			}else{
-				// Does nothing
+			
 			}
 		
 		}
-				
+
 	}
-		
+
+	
 	switch(sequence_state){
 		
 	case 0:
@@ -786,7 +777,7 @@ void Vibration_Sense_Current_Sense_And_Motor_Speed_Sequence(void){
 		current_sense_sample_counter = 0;
 		/* Prepare to measure motor speed */
 		Magnetic_Pickup_Enable();
-		system_flags |= ((uint32_t)1 << SHOW_MAIN_SCREEN_FLAG);
+		system_flags |= ((uint32_t)1 << SHOW_MAIN_OR_ALARM_SCREEN_FLAG);
 		sei();	
 	
 		sequence_state++;
@@ -796,25 +787,15 @@ void Vibration_Sense_Current_Sense_And_Motor_Speed_Sequence(void){
 
 	case 1:
 
-		if(system_flags & ((uint32_t)1 << SHOW_MAIN_SCREEN_FLAG)){
-			cli();
-			system_flags &= ~((uint32_t)1 << SHOW_MAIN_SCREEN_FLAG);
-			sei();
-			sequence_state = 4;
-		}else if(system_flags & ((uint32_t)1 << SHOW_ALARM_SCREEN_FLAG)){
-			cli();
-			system_flags &= ~((uint32_t)1 << SHOW_ALARM_SCREEN_FLAG);
-			sei();
-			sequence_state = 5;
+		if(system_flags & ((uint32_t)1 << SHOW_MAIN_OR_ALARM_SCREEN_FLAG)){
+			if(system_flags & ((uint32_t)1 << TOGGLE_SCREEN_INDEX_FLAG)){
+				sequence_state = 5;
+			}else{
+				sequence_state = 4;	
+			}
 		}else if(system_flags & ((uint32_t)1 << CHANGE_TO_CALIB_MODE_FLAG)){
-			cli();
-			system_flags &= ~((uint32_t)1 << CHANGE_TO_CALIB_MODE_FLAG);
-			sei();
 			sequence_state++;
 		}else if(system_flags & ((uint32_t)1 << CHANGE_OPERATION_MODE_FLAG)){
-			cli();
-			system_flags &= ~((uint32_t)1 << CHANGE_OPERATION_MODE_FLAG);
-			sei();
 			sequence_state = 3;
 		}else if(system_flags & ((uint32_t)1 << WIFI_COMM_EN_FLAG)){
 			sequence_state = 6;
@@ -842,6 +823,9 @@ void Vibration_Sense_Current_Sense_And_Motor_Speed_Sequence(void){
 		/* Save current state and go to testing mode */
 		System_Mode_Save();
 		system_mode = VIBRATION_SENSOR_CALIBRATION_MODE;
+		cli();
+		system_flags &= ~((uint32_t)1 << CHANGE_TO_CALIB_MODE_FLAG);
+		sei();		
 		sequence_state = 0;
 		measure_enable = 0;
 		
@@ -864,6 +848,9 @@ void Vibration_Sense_Current_Sense_And_Motor_Speed_Sequence(void){
 		
 		/* Save current state and go to Vibration Only mode */
 		system_mode = VIBRATION_SENSOR_ONLY_MODE;
+		cli();
+		system_flags &= ~((uint32_t)1 << CHANGE_OPERATION_MODE_FLAG);
+		sei();		
 		sequence_state = 0;
 		measure_enable = 0;
 		
@@ -879,8 +866,10 @@ void Vibration_Sense_Current_Sense_And_Motor_Speed_Sequence(void){
 		
 			/* Print the main screen */
 			if(ESP32_Main_Screen_Display_Update() == SEQUENCE_COMPLETE){
-				/* Print the alarm screen for 10 seconds (and clear the flag in the end) */
 
+				cli();
+				system_flags &= ~((uint32_t)1 << SHOW_MAIN_OR_ALARM_SCREEN_FLAG);
+				sei();
 				/* Go back to the normal mode */
 				sequence_state = 1;
 			}
@@ -898,7 +887,10 @@ void Vibration_Sense_Current_Sense_And_Motor_Speed_Sequence(void){
 		
 			/* Print the alarm screen */
 			if(ESP32_Alarm_Screen_Display_Update() == SEQUENCE_COMPLETE){
-			
+
+				cli();
+				system_flags &= ~((uint32_t)1 << SHOW_MAIN_OR_ALARM_SCREEN_FLAG);
+				sei();			
 				/* Go back to the normal mode */
 				sequence_state = 1;
 			}
@@ -1799,8 +1791,14 @@ uint8_t Wifi_Connection_Sequence(void){
 		temp = ESP32_Epaper_Screen01_Update();
 		if(temp == DATA_COMM_SUCCESS){
 			seq_state++;
+			cli();
+			system_flags &= ~((uint32_t)1 << SHOW_MAIN_OR_ALARM_SCREEN_FLAG);
+			sei();			
 		}else if(temp == DATA_COMM_FAIL){
 			seq_state = 24;
+			cli();
+			system_flags &= ~((uint32_t)1 << SHOW_MAIN_OR_ALARM_SCREEN_FLAG);
+			sei();			
 		}else{
 			//Does nothing
 		}
@@ -1820,10 +1818,7 @@ uint8_t Wifi_Connection_Sequence(void){
 	
 	case 15:
 	
-		if(system_flags & ((uint32_t)1 << SHOW_MAIN_SCREEN_FLAG)){
-			cli();
-			system_flags &= ~((uint32_t)1 << SHOW_MAIN_SCREEN_FLAG);
-			sei();
+		if(system_flags & ((uint32_t)1 << SHOW_MAIN_OR_ALARM_SCREEN_FLAG)){
 			seq_state = 2;
 		}else if(system_flags & ((uint32_t)1 << ESP32_WEB_PARAMETERS_CHECK_FLAG)){
 			cli();

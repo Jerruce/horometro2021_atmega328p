@@ -88,12 +88,11 @@ uint8_t ESP32_Turn_On(void){
 	case 1:
 	
 		esp32_timeout_counter++;
-		if(esp32_timeout_counter >= ESP32_COMM_TIMEOUT_VALUE){
+		if(esp32_timeout_counter >= ESP32_BOOT_TIME_VALUE){
 			esp32_timeout_counter = 0;
 			seq_state = 0;
 			result = DATA_COMM_SUCCESS;
 		}	
-		
 		break;
 		 	
 	default:
@@ -1752,7 +1751,8 @@ uint8_t ESP32_Parameters_Status_Read(void){
 	
 		PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
 		SPI1_Master_Tx_Bitstream(4, spi_tx_buffer, spi_rx_buffer);
-		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);_delay_us(50);
+		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
+		_delay_us(50);
 		seq_state++;
 		
 		break;
@@ -1779,7 +1779,8 @@ uint8_t ESP32_Parameters_Status_Read(void){
 	
 		PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
 		SPI1_Master_Tx_Bitstream(PARAM_STATUS_READ_FRAME_SIZE, spi_tx_buffer, spi_rx_buffer);
-		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);_delay_us(50);
+		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
+		_delay_us(50);
 		esp32_buffer_param_status = (((uint16_t)spi_rx_buffer[1]) << 8) | (spi_rx_buffer[0]); 
 		seq_state = 0;
 		result = DATA_COMM_SUCCESS;
@@ -1926,7 +1927,8 @@ uint8_t ESP32_Date_And_Time_Read(void){
 	
 		PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
 		SPI1_Master_Tx_Bitstream(4, spi_tx_buffer, spi_rx_buffer);
-		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);_delay_us(50);
+		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
+		_delay_us(50);
 		seq_state++;
 		
 		break;
@@ -1953,7 +1955,8 @@ uint8_t ESP32_Date_And_Time_Read(void){
 	
 		PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
 		SPI1_Master_Tx_Bitstream(DATE_AND_TIME_READ_FRAME_SIZE, spi_tx_buffer, spi_rx_buffer);
-		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);_delay_us(50);
+		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
+		_delay_us(50);
 		
 		esp32_buffer_date[0] = spi_rx_buffer[0];
 		esp32_buffer_date[1] = spi_rx_buffer[1];

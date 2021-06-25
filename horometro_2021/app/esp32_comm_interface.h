@@ -99,6 +99,7 @@
 /* Timeout value */
 #define ESP32_COMM_TIMEOUT_SEC					10
 #define ESP32_COMM_TIMEOUT_VALUE				((32 * ESP32_COMM_TIMEOUT_SEC) + 1)
+#define ESP32_BOOT_TIME_VALUE					2
 
 
 /* Buffers' size */

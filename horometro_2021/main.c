@@ -73,12 +73,13 @@ ISR(TIMER2_COMPA_vect){
 	static uint16_t working_count_sec = 0;
 	static uint8_t web_command_count_sec = 0;
 	
+	/* Check the SPI communication every 1/32 sec (31.25 ms) */
 	system_flags |= ((uint32_t)1 << ESP32_COMM_CHECK_FLAG);
 	
-	/* Read the vibration sensor every 1/32 sec (31.25ms) */
+	/* Read the vibration sensor every 1/32 sec (31.25 ms) */
 	system_flags |= ((uint32_t)1 << VIBRATION_SENSE_FLAG);
 	
-	/* Scan buttons every 1/32 sec (31.25ms) */
+	/* Scan buttons every 1/32 sec (31.25 ms) */
 	G1_Button_Scan();
 	system_flags |= ((uint32_t)1 << BUTTON_READ_FLAG);	
 	
@@ -115,7 +116,8 @@ ISR(TIMER2_COMPA_vect){
 		working_count_sec++;
 		if(working_count_sec >= WORKING_COUNT_DISPLAY_PERIOD_SEC){
 			working_count_sec = 0;
-			system_flags |= ((uint32_t)1 << SHOW_MAIN_SCREEN_FLAG);
+			system_flags &= ~((uint32_t)1 << TOGGLE_SCREEN_INDEX_FLAG);	
+			system_flags |= ((uint32_t)1 << SHOW_MAIN_OR_ALARM_SCREEN_FLAG);
 		}
 			
 		counter_1s++;
