@@ -1836,15 +1836,7 @@ uint8_t Wifi_Connection_Sequence(void){
 		break;		
 	
 	case 15:
-	
-		//if(system_flags & ((uint32_t)1 << ESP32_WEB_PARAMETERS_CHECK_FLAG)){
-			//seq_state++;
-		//}else if(system_flags & ((uint32_t)1 << SHOW_MAIN_OR_ALARM_SCREEN_FLAG)){
-			//seq_state = 0;		
-		//}else{
-			////Does nothing
-		//}
-		
+			
 		if(system_flags & ((uint32_t)1 << SHOW_MAIN_OR_ALARM_SCREEN_FLAG)){
 			seq_state = 0;
 		}else if(system_flags & ((uint32_t)1 << ESP32_WEB_PARAMETERS_CHECK_FLAG)){
@@ -1926,10 +1918,10 @@ uint8_t Wifi_Connection_Sequence(void){
 			sei();
 		}
 			
-		if(parameter_status_flag & PARAM_STATUS_MODE_BIT){
+		if(parameter_status_flag & (1 << PARAM_STATUS_MODE_BIT)){
 			parameter_status_flag &= ~(1 << PARAM_STATUS_MODE_BIT);
 			seq_state = 18;
-		}else if(parameter_status_flag & PARAM_STATUS_D_AND_T_BIT){
+		}else if(parameter_status_flag & (1 << PARAM_STATUS_D_AND_T_BIT)){
 			parameter_status_flag &= ~(1 << PARAM_STATUS_D_AND_T_BIT);
 			seq_state = 19;
 		}else if(parameter_status_flag & (1 << PARAM_STATUS_AL1_SP_BIT)){
