@@ -22,3 +22,5 @@ void Battery_Level_Measure(void);
 uint8_t Battery_Level_Get(void);
 
 #endif /* BATTERY_LEVEL_SENSE_H_ */
+
+

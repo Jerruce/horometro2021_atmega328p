@@ -18,7 +18,6 @@ void Battery_Level_Measure(void){
 	
 	uint16_t adc_bin_val;
 	float	battery_volt;
-	float battery_percent;
 	
 	/* Select the proper channel */
 	ADC_Seleccionar_Canal(VBAT_MEASURE_ADC_CHANNEL);
@@ -34,24 +33,23 @@ void Battery_Level_Measure(void){
 	adc_bin_val = ADC;
 	battery_volt = BATTERY_VSENSE_GAIN	* ((adc_bin_val * ADC_REF_VOLTAGE) / 1024.0);
 	
-	/* Calculate the percentage of the battery that has been charged */
-	battery_percent = 100.0 * (battery_volt - BATT_MIN_OUT_V) / (BATT_MAX_OUT_V - BATT_MIN_OUT_V);	
-	
-	if(battery_percent > 100.0){
-		battery_percent = 99.0;
-	}else if(battery_percent < 0.0){
-		battery_percent = 0.0;
+	/* Voltage boundaries (according to the battery datasheet */
+	if(battery_volt > BATT_MAX_OUT_V){
+		battery_volt = BATT_MAX_OUT_V;
+	}else if(battery_volt < BATT_MIN_OUT_V){
+		battery_volt = BATT_MIN_OUT_V;
 	}else{
-		// Does nothing
+		//Does nothing
 	}	
-	
-	if(battery_percent >= BATT_MED_TO_HIGH_LEVEL_PERCENT_THRESHOLD){
+
+	/* Determine the battery charge level */
+	if(battery_volt >= BATT_MED_TO_HIGH_LEVEL_VOLT_THRESHOLD){
 		battery_charge_level = BATTERY_LEVEL_HIGH;
-	}else if((battery_percent < BATT_HIGH_TO_MED_LEVEL_PERCENT_THRESHOLD) && (battery_percent > BATT_LOW_TO_MED_LEVEL_PERCENT_THRESHOLD)){
+	}else if((battery_volt < BATT_HIGH_TO_MED_LEVEL_VOLT_THRESHOLD) && (battery_volt > BATT_LOW_TO_MED_LEVEL_VOLT_THRESHOLD)){
 		battery_charge_level = BATTERY_LEVEL_MED;
-	}else if((battery_percent < BATT_MED_TO_LOW_LEVEL_PERCENT_THRESHOLD) && (battery_percent > BATT_CRITICAL_TO_LOW_LEVEL_PERCENT_THRESHOLD)){
+	}else if((battery_volt < BATT_MED_TO_LOW_LEVEL_VOLT_THRESHOLD) && (battery_volt > BATT_CRITICAL_TO_LOW_LEVEL_VOLT_THRESHOLD)){
 		battery_charge_level = BATTERY_LEVEL_LOW;
-	}else if(battery_percent < BATT_LOW_TO_CRITICAL_LEVEL_PERCENT_THRESHOLD){
+	}else if(battery_volt < BATT_LOW_TO_CRITICAL_LEVEL_VOLT_THRESHOLD){
 		battery_charge_level = BATTERY_LEVEL_CRITICAL;
 	}else{
 		// Does nothing
