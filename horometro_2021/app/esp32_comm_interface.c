@@ -206,7 +206,7 @@ uint8_t ESP32_WiFi_Enable(void){
 			esp32_timeout_counter++;
 			if(esp32_timeout_counter >= ESP32_COMM_TIMEOUT_VALUE){
 				esp32_timeout_counter = 0;
-				seq_state = 5;
+				seq_state = 4;
 			}
 		}else{
 			esp32_timeout_counter = 0;
@@ -224,42 +224,27 @@ uint8_t ESP32_WiFi_Enable(void){
 	
 		PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
 		SPI1_Master_Tx_Bitstream(4, spi_tx_buffer, spi_rx_buffer);
-		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);_delay_us(50);		
+		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
+		_delay_us(50);		
 		seq_state++;
 		
 		break;
-		
-		
+			
 	case 3:
-
-		if(PIN_MCU_FEEDBACK_HANDSHAKE & (1 << MCU_FEEDBACK_HANDSHAKE)){
-			esp32_timeout_counter++;
-			if(esp32_timeout_counter >= ESP32_COMM_TIMEOUT_VALUE){
-				esp32_timeout_counter = 0;
-				seq_state = 5;
-			}
-		}else{
-			esp32_timeout_counter = 0;
-			seq_state++;
-		}
-		
-		break;
-		
-	case 4:
 		
 		seq_state = 0;
 		result = DATA_COMM_SUCCESS;
 		
 		break;
 		
-	case 5:
+	case 4:
 		
 		seq_state = 0;
 		result = DATA_COMM_FAIL;
 		
 		break;
 		
-		default:
+	default:
 		break;
 		
 	}
@@ -287,7 +272,7 @@ uint8_t ESP32_WiFi_Disable(void){
 			esp32_timeout_counter++;
 			if(esp32_timeout_counter >= ESP32_COMM_TIMEOUT_VALUE){
 				esp32_timeout_counter = 0;
-				seq_state = 5;
+				seq_state = 4;
 			}
 		}else{
 			esp32_timeout_counter = 0;
@@ -309,31 +294,15 @@ uint8_t ESP32_WiFi_Disable(void){
 		seq_state++;		
 		
 		break;
-		
-		
+				
 	case 3:
-
-		if(PIN_MCU_FEEDBACK_HANDSHAKE & (1 << MCU_FEEDBACK_HANDSHAKE)){
-			esp32_timeout_counter++;
-			if(esp32_timeout_counter >= ESP32_COMM_TIMEOUT_VALUE){
-				esp32_timeout_counter = 0;
-				seq_state = 5;
-			}
-		}else{
-			esp32_timeout_counter = 0;
-			seq_state++;
-		}
-		
-		break;
-		
-	case 4:
 		
 		seq_state = 0;
 		result = DATA_COMM_SUCCESS;
 		
 		break;
 		
-	case 5:
+	case 4:
 		
 		seq_state = 0;
 		result = DATA_COMM_FAIL;
@@ -367,7 +336,7 @@ uint8_t ESP32_Epaper_Screen01_Update(void){
 			esp32_timeout_counter++;
 			if(esp32_timeout_counter >= ESP32_COMM_TIMEOUT_VALUE){
 				esp32_timeout_counter = 0;
-				seq_state = 5;
+				seq_state = 4;
 			}
 		}else{
 			esp32_timeout_counter = 0;
@@ -384,32 +353,19 @@ uint8_t ESP32_Epaper_Screen01_Update(void){
 		
 		PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
 		SPI1_Master_Tx_Bitstream(4, spi_tx_buffer, spi_rx_buffer);
-		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);_delay_us(50);
+		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
+		_delay_us(50);
 		seq_state++;		
 		
 		break;
-		
+				
 	case 3:
-
-		if(PIN_MCU_FEEDBACK_HANDSHAKE & (1 << MCU_FEEDBACK_HANDSHAKE)){
-			esp32_timeout_counter++;
-			if(esp32_timeout_counter >= ESP32_COMM_TIMEOUT_VALUE){
-				esp32_timeout_counter = 0;
-				seq_state = 5;
-			}
-		}else{
-			esp32_timeout_counter = 0;
-			seq_state++;
-		}
-		break;
-		
-	case 4:
 		
 		seq_state = 0;
 		result = DATA_COMM_SUCCESS;
 		break;
 		
-	case 5:
+	case 4:
 		
 		seq_state = 0;
 		result = DATA_COMM_FAIL;
@@ -436,13 +392,13 @@ uint8_t ESP32_Epaper_Screen02_Update(void){
 		seq_state++;
 		break;
 		
-		case 1:
+	case 1:
 		
 		if(PIN_MCU_FEEDBACK_HANDSHAKE & (1 << MCU_FEEDBACK_HANDSHAKE)){
 			esp32_timeout_counter++;
 			if(esp32_timeout_counter >= ESP32_COMM_TIMEOUT_VALUE){
 				esp32_timeout_counter = 0;
-				seq_state = 5;
+				seq_state = 4;
 			}
 			}else{
 			esp32_timeout_counter = 0;
@@ -450,7 +406,7 @@ uint8_t ESP32_Epaper_Screen02_Update(void){
 		}
 		break;
 		
-		case 2:
+	case 2:
 		
 		spi_tx_buffer[0] = ESP32_EPAPER_SCREEN02_WRITE_CMD;
 		spi_tx_buffer[1] = 0;
@@ -463,34 +419,20 @@ uint8_t ESP32_Epaper_Screen02_Update(void){
 		seq_state++;
 		
 		break;
-		
-		case 3:
-
-		if(PIN_MCU_FEEDBACK_HANDSHAKE & (1 << MCU_FEEDBACK_HANDSHAKE)){
-			esp32_timeout_counter++;
-			if(esp32_timeout_counter >= ESP32_COMM_TIMEOUT_VALUE){
-				esp32_timeout_counter = 0;
-				seq_state = 5;
-			}
-		}else{
-			esp32_timeout_counter = 0;
-			seq_state++;
-		}
-		break;
-		
-		case 4:
+				
+	case 3:
 		
 		seq_state = 0;
 		result = DATA_COMM_SUCCESS;
 		break;
 		
-		case 5:
+	case 4:
 		
 		seq_state = 0;
 		result = DATA_COMM_FAIL;
 		break;
 		
-		default:
+	default:
 		break;
 		
 	}
@@ -506,26 +448,26 @@ uint8_t ESP32_Epaper_Screen03_Update(void){
 	
 	switch(seq_state){
 		
-		case 0:
+	case 0:
 		esp32_timeout_counter = 0;
 		seq_state++;
 		break;
 		
-		case 1:
+	case 1:
 		
 		if(PIN_MCU_FEEDBACK_HANDSHAKE & (1 << MCU_FEEDBACK_HANDSHAKE)){
 			esp32_timeout_counter++;
 			if(esp32_timeout_counter >= ESP32_COMM_TIMEOUT_VALUE){
 				esp32_timeout_counter = 0;
-				seq_state = 5;
+				seq_state = 4;
 			}
-			}else{
+		}else{
 			esp32_timeout_counter = 0;
 			seq_state++;
 		}
 		break;
 		
-		case 2:
+	case 2:
 		
 		spi_tx_buffer[0] = ESP32_EPAPER_SCREEN03_WRITE_CMD;
 		spi_tx_buffer[1] = 0;
@@ -538,34 +480,20 @@ uint8_t ESP32_Epaper_Screen03_Update(void){
 		seq_state++;
 		
 		break;
-		
-		case 3:
-
-		if(PIN_MCU_FEEDBACK_HANDSHAKE & (1 << MCU_FEEDBACK_HANDSHAKE)){
-			esp32_timeout_counter++;
-			if(esp32_timeout_counter >= ESP32_COMM_TIMEOUT_VALUE){
-				esp32_timeout_counter = 0;
-				seq_state = 5;
-			}
-		}else{
-			esp32_timeout_counter = 0;
-			seq_state++;
-		}
-		break;
-		
-		case 4:
+				
+	case 3:
 		
 		seq_state = 0;
 		result = DATA_COMM_SUCCESS;
 		break;
 		
-		case 5:
+	case 4:
 		
 		seq_state = 0;
 		result = DATA_COMM_FAIL;
 		break;
 		
-		default:
+	default:
 		break;
 		
 	}

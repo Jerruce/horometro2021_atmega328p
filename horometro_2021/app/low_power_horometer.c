@@ -236,23 +236,40 @@ void System_Sequence(void){
 void Vibration_Sense_Calibration_Sequence(void){
 	
 	static uint8_t sequence_state = 0;
+	static uint8_t measure_enable = 0;
 
-	/* Ignore current sensor */
-	if(system_flags & ((uint32_t)1 << CURRENT_SENSE_FLAG)){
-		cli();
-		system_flags &= ~((uint32_t)1 << CURRENT_SENSE_FLAG);
-		sei();
+	if(measure_enable){
+
+		/* Ignore current sensor */
+		if(system_flags & ((uint32_t)1 << CURRENT_SENSE_FLAG)){
+			cli();
+			system_flags &= ~((uint32_t)1 << CURRENT_SENSE_FLAG);
+			sei();
+		}
+
+		/* Read vibration sensor (piezoelectric) */
+		if(system_flags & ((uint32_t)1 << VIBRATION_SENSE_FLAG)){
+		
+			cli();
+			system_flags &= ~((uint32_t)1 << VIBRATION_SENSE_FLAG);
+			sei();
+		
+			Calib_Time_Count_Update();
+		}		
+		
+		
+		/* Measure the battery charge level */
+		if(system_flags & ((uint32_t)1 << BATTERY_LEVEL_MEASURE_FLAG)){
+		
+			cli();
+			system_flags &= ~((uint32_t)1 << BATTERY_LEVEL_MEASURE_FLAG);
+			sei();
+		
+			Battery_Level_Measure();
+		}		
+		
 	}
 
-	/* Read vibration sensor (piezoelectric) */
-	if(system_flags & ((uint32_t)1 << VIBRATION_SENSE_FLAG)){
-		
-		cli();
-		system_flags &= ~((uint32_t)1 << VIBRATION_SENSE_FLAG);
-		sei();
-		
-		Calib_Time_Count_Update();
-	}
 
 	/* Read DIP switch (ignore buttons) */
 	if(system_flags & ((uint32_t)1 << BUTTON_READ_FLAG)){
@@ -268,16 +285,6 @@ void Vibration_Sense_Calibration_Sequence(void){
 		}
 	}
 	
-	/* Measure the battery charge level */
-	if(system_flags & ((uint32_t)1 << BATTERY_LEVEL_MEASURE_FLAG)){
-		
-		cli();
-		system_flags &= ~((uint32_t)1 << BATTERY_LEVEL_MEASURE_FLAG);
-		sei();
-		
-		Battery_Level_Measure();
-	}
-
 
 	switch(sequence_state){
 	
@@ -302,6 +309,7 @@ void Vibration_Sense_Calibration_Sequence(void){
 		Calib_Time_Reset();		
 		
 		sequence_state++;
+		measure_enable = 1;
 	 	
 		break;
 			
@@ -334,6 +342,7 @@ void Vibration_Sense_Calibration_Sequence(void){
 		System_Mode_Load();
 		
 		sequence_state = 0;
+		measure_enable = 0;
 		
 		break;
 
@@ -371,43 +380,62 @@ void Vibration_Sense_Calibration_Sequence(void){
 void Vibration_Sense_Only_Sequence(void){
 	
 	static uint8_t sequence_state = 0;	
+	static uint8_t measure_enable = 0;
 
-	/* Ignore current sensor */
-	if(system_flags & ((uint32_t)1 << CURRENT_SENSE_FLAG)){
-		cli();
-		system_flags &= ~((uint32_t)1 << CURRENT_SENSE_FLAG);
-		sei();
-	}
-	
-	/* Read vibration sensor (piezoelectric) */
-	if(system_flags & ((uint32_t)1 << VIBRATION_SENSE_FLAG)){
-		
-		cli();
-		system_flags &= ~((uint32_t)1 << VIBRATION_SENSE_FLAG);
-		sei();
-		
-		Working_Time_Count_Update();
-		
-		if(alarm_status_flags & (1 << E1_FLAG)){
-			Alarm1_Time_Count_Update();
-		}
 
-		if(alarm_status_flags & (1 << E2_FLAG)){
-			Alarm2_Time_Count_Update();
-		}
+	if(measure_enable){
 		
-		if(alarm_status_flags & (1 << E3_FLAG)){
-			Alarm3_Time_Count_Update();
-		}				
-			
-	}
+		/* Ignore current sensor */
+		if(system_flags & ((uint32_t)1 << CURRENT_SENSE_FLAG)){
+			cli();
+			system_flags &= ~((uint32_t)1 << CURRENT_SENSE_FLAG);
+			sei();
+		}
 	
-	Check_For_Alarm_Events();
-	if(alarm_event_flags){
-		system_flags &= ~((uint32_t)1 << TOGGLE_SCREEN_INDEX_FLAG);
-		system_flags |= ((uint32_t)1 << SHOW_ALARM_SCREEN_FLAG);
-		system_flags &= ~((uint32_t)1 << SHOW_MAIN_SCREEN_FLAG);
+		/* Read vibration sensor (piezoelectric) */
+		if(system_flags & ((uint32_t)1 << VIBRATION_SENSE_FLAG)){
+		
+			cli();
+			system_flags &= ~((uint32_t)1 << VIBRATION_SENSE_FLAG);
+			sei();
+		
+			Working_Time_Count_Update();
+		
+			if(alarm_status_flags & (1 << E1_FLAG)){
+				Alarm1_Time_Count_Update();
+			}
+
+			if(alarm_status_flags & (1 << E2_FLAG)){
+				Alarm2_Time_Count_Update();
+			}
+		
+			if(alarm_status_flags & (1 << E3_FLAG)){
+				Alarm3_Time_Count_Update();
+			}
+		
+		}
+	
+	
+		/* Measure the battery charge level */
+		if(system_flags & ((uint32_t)1 << BATTERY_LEVEL_MEASURE_FLAG)){
+		
+			cli();
+			system_flags &= ~((uint32_t)1 << BATTERY_LEVEL_MEASURE_FLAG);
+			sei();
+		
+			Battery_Level_Measure();
+		}	
+	
+		Check_For_Alarm_Events();
+		if(alarm_event_flags){
+			system_flags &= ~((uint32_t)1 << TOGGLE_SCREEN_INDEX_FLAG);
+			system_flags |= ((uint32_t)1 << SHOW_ALARM_SCREEN_FLAG);
+			system_flags &= ~((uint32_t)1 << SHOW_MAIN_SCREEN_FLAG);
+		}		
+		
+		
 	}
+
 
 	/* Read DIP switch and buttons */
 	if(system_flags & ((uint32_t)1 << BUTTON_READ_FLAG)){
@@ -449,17 +477,7 @@ void Vibration_Sense_Only_Sequence(void){
 			
 	}
 	
-	/* Measure the battery charge level */
-	if(system_flags & ((uint32_t)1 << BATTERY_LEVEL_MEASURE_FLAG)){
-		
-		cli();
-		system_flags &= ~((uint32_t)1 << BATTERY_LEVEL_MEASURE_FLAG);
-		sei();
-		
-		Battery_Level_Measure();
-	}
-
-
+	
 	switch(sequence_state){
 		
 	case 0:
@@ -474,7 +492,8 @@ void Vibration_Sense_Only_Sequence(void){
 		EIFR |= (1 << INTF0);
 		system_flags |= ((uint32_t)1 << SHOW_MAIN_SCREEN_FLAG);
 		sei();
-									
+		
+		measure_enable = 1;							
 		sequence_state++;
 			
 		break;	
@@ -502,7 +521,7 @@ void Vibration_Sense_Only_Sequence(void){
 			sei();
 			sequence_state = 3;
 		}else if(system_flags & ((uint32_t)1 << WIFI_COMM_EN_FLAG)){
-			sequence_state = 6;
+			sequence_state = 6;			
 		}else{
 			//Does nothing
 		}
@@ -513,12 +532,14 @@ void Vibration_Sense_Only_Sequence(void){
 
 		/* Clean buttons */
 		G1_Get_Button_Press(1 << MODE_BUTTON);
+		G1_Get_Button_Long(1 << MODE_BUTTON);
 		G1_Get_Button_Press(1 << WIFI_BUTTON);	
 	
 		/* Save current state and go to testing mode */
 		System_Mode_Save();
 		system_mode = VIBRATION_SENSOR_CALIBRATION_MODE;	
 		sequence_state = 0;	
+		measure_enable = 0;
 	
 		break;	
 		
@@ -526,11 +547,13 @@ void Vibration_Sense_Only_Sequence(void){
 	
 		/* Clean buttons */
 		G1_Get_Button_Press(1 << MODE_BUTTON);
+		G1_Get_Button_Long(1 << MODE_BUTTON);
 		G1_Get_Button_Press(1 << WIFI_BUTTON);
 	
 		/* Go to Vibration + Current Mode */
 		system_mode = VIBRATION_CURRENT_PICKUP_SENSOR_MODE;	
 		sequence_state = 0;
+		measure_enable = 0;
 	
 		break;
 		
@@ -544,8 +567,6 @@ void Vibration_Sense_Only_Sequence(void){
 			
 			/* Print the main screen */
 			if(ESP32_Main_Screen_Display_Update() == SEQUENCE_COMPLETE){
-				/* Print the alarm screen for 10 seconds (and clear the flag in the end) */
-
 				/* Go back to the normal mode */
 				sequence_state = 1;			
 			}
@@ -589,6 +610,7 @@ void Vibration_Sense_Only_Sequence(void){
 				
 				/* Go back to the normal mode */
 				sequence_state = 1;
+		
 			}
 			
 		}
@@ -611,82 +633,98 @@ void Vibration_Sense_Current_Sense_And_Motor_Speed_Sequence(void){
 	static uint8_t current_sense_sample_counter = 0;
 	float new_current;
 	uint16_t new_freq_rpm;
+	static uint8_t measure_enable = 0;
 
-	/* Read current sensor */
-	if(system_flags & ((uint32_t)1 << CURRENT_SENSE_FLAG)){
-		cli();
-		system_flags &= ~((uint32_t)1 << CURRENT_SENSE_FLAG);
-		sei();
+
+	if(measure_enable){
+		
+		/* Read current sensor */
+		if(system_flags & ((uint32_t)1 << CURRENT_SENSE_FLAG)){
+			cli();
+			system_flags &= ~((uint32_t)1 << CURRENT_SENSE_FLAG);
+			sei();
+		
+			Current_Measure();
+			current_sense_sample_counter++;
+			if(current_sense_sample_counter >= CURRENT_RMS_CALC_N_SAMPLES){
+				current_sense_sample_counter = 0;
+				RMS_Current_Calculate();
+				Peak_Current_Reset();
 			
-		Current_Measure();
-		current_sense_sample_counter++;
-		if(current_sense_sample_counter >= CURRENT_RMS_CALC_N_SAMPLES){
-			current_sense_sample_counter = 0;
-			RMS_Current_Calculate();
-			Peak_Current_Reset();
+				new_freq_rpm = Magnetic_Pickup_Get_Freq_RPM();
+				new_current = RMS_Current_Get();
 			
-			new_freq_rpm = Magnetic_Pickup_Get_Freq_RPM();
-			new_current = RMS_Current_Get();
-			
-			if(new_current > OVERCURRENT_UPPER_THRESHOLD){
-				system_flags |= ((uint32_t)1 << OVERCURRENT_ALARM_FLAG);
-			}else if(new_current < OVERCURRENT_UPPER_THRESHOLD){
-				system_flags &= ~((uint32_t)1 << OVERCURRENT_ALARM_FLAG);
-			}else{
-				//Does nothing
-			}
-			
-			if(system_flags & ((uint32_t)1 << MAG_PICKUP_TIMEOUT_FLAG)){
-				
-				if(new_current > MOTOR_STUCK_CURRENT_UPPER_THRESHOLD){
-					cli();
-					system_flags |= ((uint32_t)1 << MOTOR_STUCK_ALARM_FLAG);
-					sei();				
-				}else if(new_current < MOTOR_STUCK_CURRENT_LOWER_THRESHOLD){
-					cli();
-					system_flags &= ~((uint32_t)1 << MOTOR_STUCK_ALARM_FLAG);
-					sei();				
-				}else{
+				if(new_current > OVERCURRENT_UPPER_THRESHOLD){
+					system_flags |= ((uint32_t)1 << OVERCURRENT_ALARM_FLAG);
+					}else if(new_current < OVERCURRENT_UPPER_THRESHOLD){
+					system_flags &= ~((uint32_t)1 << OVERCURRENT_ALARM_FLAG);
+					}else{
 					//Does nothing
 				}
+			
+				if(system_flags & ((uint32_t)1 << MAG_PICKUP_TIMEOUT_FLAG)){
 				
-			}else{
-				cli();
-				system_flags &= ~((uint32_t)1 << MOTOR_STUCK_ALARM_FLAG);
-				sei();
+					if(new_current > MOTOR_STUCK_CURRENT_UPPER_THRESHOLD){
+						cli();
+						system_flags |= ((uint32_t)1 << MOTOR_STUCK_ALARM_FLAG);
+						sei();
+						}else if(new_current < MOTOR_STUCK_CURRENT_LOWER_THRESHOLD){
+						cli();
+						system_flags &= ~((uint32_t)1 << MOTOR_STUCK_ALARM_FLAG);
+						sei();
+						}else{
+						//Does nothing
+					}
+				
+				}else{
+					cli();
+					system_flags &= ~((uint32_t)1 << MOTOR_STUCK_ALARM_FLAG);
+					sei();
+				}
 			}
-			
 		}
-	}
-		
-	/* Read vibration sensor (piezoelectric) */
-	if(system_flags & ((uint32_t)1 << VIBRATION_SENSE_FLAG)){
-			
-		cli();
-		system_flags &= ~((uint32_t)1 << VIBRATION_SENSE_FLAG);
-		sei();
-			
-		Working_Time_Count_Update();
-		
-		if(parameter_status_flag & (1 << PARAM_STATUS_AL1_EN_BIT)){
-			Alarm1_Time_Count_Update();
-		}
-
-		if(parameter_status_flag & (1 << PARAM_STATUS_AL2_EN_BIT)){
-			Alarm2_Time_Count_Update();
-		}
-		
-		if(parameter_status_flag & (1 << PARAM_STATUS_AL2_EN_BIT)){
-			Alarm3_Time_Count_Update();
-		}		
-	}
 	
-	Check_For_Alarm_Events();
-	if(alarm_event_flags){
-		system_flags &= ~((uint32_t)1 << TOGGLE_SCREEN_INDEX_FLAG);
-		system_flags |= ((uint32_t)1 << SHOW_ALARM_SCREEN_FLAG);
-		system_flags &= ~((uint32_t)1 << SHOW_MAIN_SCREEN_FLAG);
-	}	
+		/* Read vibration sensor (piezoelectric) */
+		if(system_flags & ((uint32_t)1 << VIBRATION_SENSE_FLAG)){
+		
+			cli();
+			system_flags &= ~((uint32_t)1 << VIBRATION_SENSE_FLAG);
+			sei();
+		
+			Working_Time_Count_Update();
+		
+			if(parameter_status_flag & (1 << PARAM_STATUS_AL1_EN_BIT)){
+				Alarm1_Time_Count_Update();
+			}
+
+			if(parameter_status_flag & (1 << PARAM_STATUS_AL2_EN_BIT)){
+				Alarm2_Time_Count_Update();
+			}
+		
+			if(parameter_status_flag & (1 << PARAM_STATUS_AL2_EN_BIT)){
+				Alarm3_Time_Count_Update();
+			}
+		}
+		
+		/* Measure the battery charge level */
+		if(system_flags & ((uint32_t)1 << BATTERY_LEVEL_MEASURE_FLAG)){
+		
+			cli();
+			system_flags &= ~((uint32_t)1 << BATTERY_LEVEL_MEASURE_FLAG);
+			sei();
+		
+			Battery_Level_Measure();
+		}		
+	
+		Check_For_Alarm_Events();
+		if(alarm_event_flags){
+			system_flags &= ~((uint32_t)1 << TOGGLE_SCREEN_INDEX_FLAG);
+			system_flags |= ((uint32_t)1 << SHOW_ALARM_SCREEN_FLAG);
+			system_flags &= ~((uint32_t)1 << SHOW_MAIN_SCREEN_FLAG);
+		}		
+		
+	}
+
 	
 
 	/* Read DIP switch and buttons */
@@ -729,17 +767,6 @@ void Vibration_Sense_Current_Sense_And_Motor_Speed_Sequence(void){
 				
 	}
 		
-	/* Measure the battery charge level */
-	if(system_flags & ((uint32_t)1 << BATTERY_LEVEL_MEASURE_FLAG)){
-			
-		cli();
-		system_flags &= ~((uint32_t)1 << BATTERY_LEVEL_MEASURE_FLAG);
-		sei();
-			
-		Battery_Level_Measure();
-	}
-
-
 	switch(sequence_state){
 		
 	case 0:
@@ -763,6 +790,7 @@ void Vibration_Sense_Current_Sense_And_Motor_Speed_Sequence(void){
 		sei();	
 	
 		sequence_state++;
+		measure_enable = 1;
 		
 		break;
 
@@ -800,6 +828,7 @@ void Vibration_Sense_Current_Sense_And_Motor_Speed_Sequence(void){
 	
 		/* Clean buttons */
 		G1_Get_Button_Press(1 << MODE_BUTTON);
+		G1_Get_Button_Long(1 << MODE_BUTTON);
 		G1_Get_Button_Press(1 << WIFI_BUTTON);
 	
 		/* Disable current measurement and magnetic pick-up circuit */
@@ -814,6 +843,7 @@ void Vibration_Sense_Current_Sense_And_Motor_Speed_Sequence(void){
 		System_Mode_Save();
 		system_mode = VIBRATION_SENSOR_CALIBRATION_MODE;
 		sequence_state = 0;
+		measure_enable = 0;
 		
 		break;
 		
@@ -821,6 +851,7 @@ void Vibration_Sense_Current_Sense_And_Motor_Speed_Sequence(void){
 		
 		/* Clean buttons */
 		G1_Get_Button_Press(1 << MODE_BUTTON);
+		G1_Get_Button_Long(1 << MODE_BUTTON);
 		G1_Get_Button_Press(1 << WIFI_BUTTON);
 		
 		/* Disable current measurement and magnetic pick-up circuit */
@@ -834,6 +865,7 @@ void Vibration_Sense_Current_Sense_And_Motor_Speed_Sequence(void){
 		/* Save current state and go to Vibration Only mode */
 		system_mode = VIBRATION_SENSOR_ONLY_MODE;
 		sequence_state = 0;
+		measure_enable = 0;
 		
 		break;
 	
@@ -1587,6 +1619,7 @@ uint8_t Wifi_Connection_Sequence(void){
 	switch(seq_state){
 		
 	case 0:
+	
 		/* System mode */
 		ESP32_Buffer_Operation_Mode_Set(system_mode);
 		/* Battery level */
@@ -1617,7 +1650,7 @@ uint8_t Wifi_Connection_Sequence(void){
 		ESP32_Buffer_Alarms_Events_Set(alarm_event_flags);
 		
 		seq_state++;
-		
+	
 		break;
 		
 	case 1:
@@ -2002,6 +2035,7 @@ uint8_t Wifi_Connection_Sequence(void){
 		seq_state = 0;
 		result = SEQUENCE_COMPLETE;
 		G1_Get_Button_Press(1 << MODE_BUTTON);
+		G1_Get_Button_Long(1 << MODE_BUTTON);
 		G1_Get_Button_Press(1 << WIFI_BUTTON);
 		
 		break;
