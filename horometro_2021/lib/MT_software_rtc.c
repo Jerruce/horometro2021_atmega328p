@@ -9,7 +9,7 @@
 #include "MT_software_rtc.h"
 
 /* Variable definition */
-volatile uint8_t rtc1_data[6] = {0, 0, 0, 1, 0, 0};
+volatile uint8_t rtc1_data[6];
 volatile uint8_t rtc1_leap_year_index = 1;
 
 const uint8_t	month_size[2][12] =	{

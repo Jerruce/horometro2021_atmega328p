@@ -13,7 +13,7 @@ void UART_Initialize(void){
 		
 	UART_t my_uart;	
 	
-	my_uart.baud_rate = 2400;//2700;//2800;//Baud_2400_bps;
+	my_uart.baud_rate = Baud_2400_bps;
 	my_uart.data_bits = UART_8_Data_Bits;
 	my_uart.parity_mode = UART_Parity_Disabled;
 	my_uart.stop_bits = UART_1_Stop_Bit;

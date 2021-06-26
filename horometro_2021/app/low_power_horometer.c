@@ -57,6 +57,8 @@ void System_Initialize(void){
 	Analog_Comparator_Disable();
 	Timer0_Interrupt_Disable();
 	Magnetic_Pickup_Disable();
+	
+	alarm_status_flags |= (1 << E1_FLAG);
 }
 
 
@@ -198,8 +200,26 @@ void System_Sequence(void){
 	
 	uint8_t hora, minuto, segundo;
 	uint8_t dia, mes, anio;
+	uint32_t calib_counter;
 	
-	char texto[30];	
+	uint32_t motor_hours;
+	uint8_t motor_min, motor_sec;
+	
+	uint32_t al1_hours;
+	uint8_t al1_min, al1_sec;
+	
+	uint32_t al2_hours;
+	uint8_t al2_min, al2_sec;
+	
+	uint32_t al3_hours;
+	uint8_t al3_min, al3_sec;	
+	
+	float corriente;
+	uint32_t corriente_ent;
+	
+	uint16_t frecuencia;
+	
+	char texto[50];	
 	
 	switch(system_mode){
 		
@@ -225,8 +245,50 @@ void System_Sequence(void){
 		system_flags &= ~((uint32_t)1 << SERIAL_MSG_FLAG);
 		sei();
 		
-		sprintf(texto, "%d", system_mode);
+		cli();
+		Soft_RTC1_Get_Date(&dia, &mes, &anio);
+		sei();
+		sprintf(texto, "Fecha:%02d/%02d/%02d\r\n", dia, mes, anio);		
 		UARTn_Tx_String(UART0, texto);
+		
+		cli();
+		Soft_RTC1_Get_Time(&hora, &minuto, &segundo);
+		sei();
+		sprintf(texto, "Hora:%02d:%02d:%02d\r\n", hora, minuto, segundo);
+		UARTn_Tx_String(UART0, texto);
+		
+		sprintf(texto, "Modo:%d\r\n", system_mode);
+		UARTn_Tx_String(UART0, texto);
+		
+		sprintf(texto, "Calib t:%u\r\n", Calib_Time_Get());
+		UARTn_Tx_String(UART0, texto);		
+		
+		Working_Time_Get(&motor_hours, &motor_min, &motor_sec);
+		sprintf(texto, "Motor t:%u\r\n", motor_sec);
+		UARTn_Tx_String(UART0, texto);		
+		
+		Alarm1_Time_Get(&al1_hours, &al1_min, &al1_sec);
+		sprintf(texto, "AL1 t:%u\r\n", al1_sec);
+		UARTn_Tx_String(UART0, texto);	
+		
+		Alarm2_Time_Get(&al2_hours, &al2_min, &al2_sec);
+		sprintf(texto, "AL2 t:%u\r\n", al2_sec);
+		UARTn_Tx_String(UART0, texto);	
+		
+		Alarm3_Time_Get(&al3_hours, &al3_min, &al3_sec);
+		sprintf(texto, "AL3 t:%u\r\n", al3_sec);
+		UARTn_Tx_String(UART0, texto);				
+		
+		corriente = RMS_Current_Get();
+		corriente_ent = (uint32_t)corriente;
+		sprintf(texto, "I(mA):%d\r\n", corriente_ent);
+		UARTn_Tx_String(UART0, texto);
+		
+		frecuencia = Magnetic_Pickup_Get_Freq_Hz();
+		sprintf(texto, "Freq(Hz): %d\r\n", frecuencia);
+		UARTn_Tx_String(UART0, texto);
+		
+		UARTn_Tx_Byte(UART0, '\n');
 		
 	}
 	
@@ -457,13 +519,13 @@ void Vibration_Sense_Only_Sequence(void){
 					sei();
 				}else if(G1_Get_Button_Long(1 << MODE_BUTTON)){
 					cli();
-					system_flags ^= ((uint32_t)1 << TOGGLE_SCREEN_INDEX_FLAG);
-					system_flags |= ((uint32_t)1 << SHOW_MAIN_OR_ALARM_SCREEN_FLAG);
+					system_flags |= ((uint32_t)1 << CHANGE_OPERATION_MODE_FLAG);
 					sei();
 				}else if(G1_Get_Button_Short(1 << MODE_BUTTON)){
 					cli();
-					system_flags |= ((uint32_t)1 << CHANGE_OPERATION_MODE_FLAG);
-					sei();
+					system_flags ^= ((uint32_t)1 << TOGGLE_SCREEN_INDEX_FLAG);
+					system_flags |= ((uint32_t)1 << SHOW_MAIN_OR_ALARM_SCREEN_FLAG);
+					sei();					
 				}else if(G1_Get_Button_Press(1 << WIFI_BUTTON)){
 					cli();
 					system_flags |= ((uint32_t)1 << WIFI_COMM_EN_FLAG);
@@ -501,8 +563,12 @@ void Vibration_Sense_Only_Sequence(void){
 		break;	
 		
 	case 1:
-
-		if(system_flags & ((uint32_t)1 << SHOW_MAIN_OR_ALARM_SCREEN_FLAG)){
+	
+		if(system_flags & ((uint32_t)1 << WIFI_COMM_EN_FLAG)){
+			
+			sequence_state = 6;
+			
+		}else if(system_flags & ((uint32_t)1 << SHOW_MAIN_OR_ALARM_SCREEN_FLAG)){
 			
 			if(system_flags & ((uint32_t)1 << TOGGLE_SCREEN_INDEX_FLAG)){
 				sequence_state = 5;
@@ -514,8 +580,6 @@ void Vibration_Sense_Only_Sequence(void){
 			sequence_state++;
 		}else if(system_flags & ((uint32_t)1 << CHANGE_OPERATION_MODE_FLAG)){
 			sequence_state = 3;
-		}else if(system_flags & ((uint32_t)1 << WIFI_COMM_EN_FLAG)){
-			sequence_state = 6;			
 		}else{
 			//Does nothing
 		}
@@ -746,13 +810,13 @@ void Vibration_Sense_Current_Sense_And_Motor_Speed_Sequence(void){
 					sei();
 				}else if(G1_Get_Button_Long(1 << MODE_BUTTON)){
 					cli();
-					system_flags ^= ((uint32_t)1 << TOGGLE_SCREEN_INDEX_FLAG);
-					system_flags |= ((uint32_t)1 << SHOW_MAIN_OR_ALARM_SCREEN_FLAG);
+					system_flags |= ((uint32_t)1 << CHANGE_OPERATION_MODE_FLAG);
 					sei();
 				}else if(G1_Get_Button_Short(1 << MODE_BUTTON)){
 					cli();
-					system_flags |= ((uint32_t)1 << CHANGE_OPERATION_MODE_FLAG);
-					sei();
+					system_flags ^= ((uint32_t)1 << TOGGLE_SCREEN_INDEX_FLAG);
+					system_flags |= ((uint32_t)1 << SHOW_MAIN_OR_ALARM_SCREEN_FLAG);
+					sei();					
 				}else if(G1_Get_Button_Press(1 << WIFI_BUTTON)){
 					cli();
 					system_flags |= ((uint32_t)1 << WIFI_COMM_EN_FLAG);
@@ -797,8 +861,12 @@ void Vibration_Sense_Current_Sense_And_Motor_Speed_Sequence(void){
 		break;
 
 	case 1:
-
-		if(system_flags & ((uint32_t)1 << SHOW_MAIN_OR_ALARM_SCREEN_FLAG)){
+	
+		if(system_flags & ((uint32_t)1 << WIFI_COMM_EN_FLAG)){
+			
+			sequence_state = 6;
+			
+		}else if(system_flags & ((uint32_t)1 << SHOW_MAIN_OR_ALARM_SCREEN_FLAG)){
 			if(system_flags & ((uint32_t)1 << TOGGLE_SCREEN_INDEX_FLAG)){
 				sequence_state = 5;
 			}else{
@@ -808,8 +876,6 @@ void Vibration_Sense_Current_Sense_And_Motor_Speed_Sequence(void){
 			sequence_state++;
 		}else if(system_flags & ((uint32_t)1 << CHANGE_OPERATION_MODE_FLAG)){
 			sequence_state = 3;
-		}else if(system_flags & ((uint32_t)1 << WIFI_COMM_EN_FLAG)){
-			sequence_state = 6;
 		}else{
 			//Does nothing
 		}
@@ -839,6 +905,7 @@ void Vibration_Sense_Current_Sense_And_Motor_Speed_Sequence(void){
 		sei();		
 		sequence_state = 0;
 		measure_enable = 0;
+		current_sense_sample_counter = 0;
 		
 		break;
 		
@@ -864,6 +931,7 @@ void Vibration_Sense_Current_Sense_And_Motor_Speed_Sequence(void){
 		sei();		
 		sequence_state = 0;
 		measure_enable = 0;
+		current_sense_sample_counter = 0;
 		
 		break;
 	
@@ -1874,39 +1942,51 @@ uint8_t Wifi_Connection_Sequence(void){
 			alarm_status_flags |= (1 << E1_FLAG);
 		}else{
 			alarm_status_flags &= ~(1 << E1_FLAG);
+			cli();
+			system_flags &= ~(1 << ALARM_01_REACHED_FLAG);
+			Alarm1_Time_Reset();
+			sei();			
 		}
 
 		if(parameter_status_flag & (1 << PARAM_STATUS_AL2_EN_BIT)){
 			alarm_status_flags |= (1 << E2_FLAG);
 		}else{
 			alarm_status_flags &= ~(1 << E2_FLAG);
+			cli();
+			system_flags &= ~(1 << ALARM_02_REACHED_FLAG);
+			Alarm2_Time_Reset();
+			sei();			
 		}		
 		
 		if(parameter_status_flag & (1 << PARAM_STATUS_AL3_EN_BIT)){
 			alarm_status_flags |= (1 << E3_FLAG);
 		}else{
 			alarm_status_flags &= ~(1 << E3_FLAG);
+			cli();
+			system_flags &= ~(1 << ALARM_01_REACHED_FLAG);
+			Alarm1_Time_Reset();
+			sei();			
 		}
 		
 		if(parameter_status_flag & (1 << PARAM_STATUS_AL1_RST_BIT)){
+			parameter_status_flag &= ~(1 << PARAM_STATUS_AL1_RST_BIT);			
 			cli();
-			parameter_status_flag &= ~(1 << PARAM_STATUS_AL1_RST_BIT);
 			system_flags &= ~(1 << ALARM_01_REACHED_FLAG);
 			Alarm1_Time_Reset();	
 			sei();
 		}
 		
 		if(parameter_status_flag & (1 << PARAM_STATUS_AL2_RST_BIT)){
-			cli();
 			parameter_status_flag &= ~(1 << PARAM_STATUS_AL2_RST_BIT);
+			cli();
 			system_flags &= ~(1 << ALARM_02_REACHED_FLAG);
 			Alarm2_Time_Reset();
 			sei();
 		}
 		
 		if(parameter_status_flag & (1 << PARAM_STATUS_AL3_RST_BIT)){
-			cli();
 			parameter_status_flag &= ~(1 << PARAM_STATUS_AL3_RST_BIT);
+			cli();
 			system_flags &= ~(1 << ALARM_03_REACHED_FLAG);
 			Alarm3_Time_Reset();
 			sei();

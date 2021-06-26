@@ -132,30 +132,27 @@ void Working_Time_Reset(void){
 
 
 void Alarm1_Time_Count_Update(void){
-	
-	if(Piezoelectric_Sensor_Read()){
-		
-		alarm1_time_step_counter++;
-		if(alarm1_time_step_counter >= HOROMETER_SECOND_N_STEPS){
-			alarm1_time_step_counter = 0;
-			alarm1_time_seconds++;
-			if(alarm1_time_seconds >= 60){
-				alarm1_time_seconds = 0;
-				alarm1_time_minutes++;
-				if(alarm1_time_minutes >= 60){
-					alarm1_time_minutes = 0;
-					alarm1_time_hours++;
-					
-					if(alarm1_time_hours >= alarm1_setpoint_hours){
-						cli();
-						system_flags |= ((uint32_t)1 << ALARM_01_REACHED_FLAG);
-						sei();
-					}
+			
+	alarm1_time_step_counter++;
+	if(alarm1_time_step_counter >= HOROMETER_SECOND_N_STEPS){
+		alarm1_time_step_counter = 0;
+		alarm1_time_seconds++;
+		if(alarm1_time_seconds >= 60){
+			alarm1_time_seconds = 0;
+			alarm1_time_minutes++;
+			if(alarm1_time_minutes >= 60){
+				alarm1_time_minutes = 0;
+				alarm1_time_hours++;
+				
+				if(alarm1_time_hours >= alarm1_setpoint_hours){
+					cli();
+					system_flags |= ((uint32_t)1 << ALARM_01_REACHED_FLAG);
+					sei();
 				}
 			}
 		}
 	}
-	
+		
 }
 
 
@@ -194,29 +191,26 @@ uint32_t Alarm1_Setpoint_Get(void){
 
 
 void Alarm2_Time_Count_Update(void){
-	
-	if(Piezoelectric_Sensor_Read()){
 		
-		alarm2_time_step_counter++;
-		if(alarm2_time_step_counter >= HOROMETER_SECOND_N_STEPS){
-			alarm2_time_step_counter = 0;
-			alarm2_time_seconds++;
-			if(alarm2_time_seconds >= 60){
-				alarm2_time_seconds = 0;
-				alarm2_time_minutes++;
-				if(alarm2_time_minutes >= 60){
-					alarm2_time_minutes = 0;
-					alarm2_time_hours++;
+	alarm2_time_step_counter++;
+	if(alarm2_time_step_counter >= HOROMETER_SECOND_N_STEPS){
+		alarm2_time_step_counter = 0;
+		alarm2_time_seconds++;
+		if(alarm2_time_seconds >= 60){
+			alarm2_time_seconds = 0;
+			alarm2_time_minutes++;
+			if(alarm2_time_minutes >= 60){
+				alarm2_time_minutes = 0;
+				alarm2_time_hours++;
 
-					if(alarm2_time_hours >= alarm2_setpoint_hours){
-						cli();
-						system_flags |= ((uint32_t)1 << ALARM_02_REACHED_FLAG);
-						sei();
-					}					
+				if(alarm2_time_hours >= alarm2_setpoint_hours){
+					cli();
+					system_flags |= ((uint32_t)1 << ALARM_02_REACHED_FLAG);
+					sei();
 				}
 			}
 		}
-	}	
+	}
 }
 
 
@@ -256,25 +250,22 @@ uint32_t Alarm2_Setpoint_Get(void){
 
 
 void Alarm3_Time_Count_Update(void){
-	
-	if(Piezoelectric_Sensor_Read()){
 		
-		alarm3_time_step_counter++;
-		if(alarm3_time_step_counter >= HOROMETER_SECOND_N_STEPS){
-			alarm3_time_step_counter = 0;
-			alarm3_time_seconds++;
-			if(alarm3_time_seconds >= 60){
-				alarm3_time_seconds = 0;
-				alarm3_time_minutes++;
-				if(alarm3_time_minutes >= 60){
-					alarm3_time_minutes = 0;
-					alarm3_time_hours++;
+	alarm3_time_step_counter++;
+	if(alarm3_time_step_counter >= HOROMETER_SECOND_N_STEPS){
+		alarm3_time_step_counter = 0;
+		alarm3_time_seconds++;
+		if(alarm3_time_seconds >= 60){
+			alarm3_time_seconds = 0;
+			alarm3_time_minutes++;
+			if(alarm3_time_minutes >= 60){
+				alarm3_time_minutes = 0;
+				alarm3_time_hours++;
 
-					if(alarm3_time_hours >= alarm3_setpoint_hours){
-						cli();
-						system_flags |= ((uint32_t)1 << ALARM_03_REACHED_FLAG);
-						sei();
-					}						
+				if(alarm3_time_hours >= alarm3_setpoint_hours){
+					cli();
+					system_flags |= ((uint32_t)1 << ALARM_03_REACHED_FLAG);
+					sei();
 				}
 			}
 		}

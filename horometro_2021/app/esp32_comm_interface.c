@@ -1868,7 +1868,11 @@ uint8_t ESP32_Operation_Mode_Read(void){
 	
 		PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
 		SPI1_Master_Tx_Bitstream(OP_MODE_READ_FRAME_SIZE, spi_tx_buffer, spi_rx_buffer);
-		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);_delay_us(50);
+		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
+		_delay_us(50);
+		
+		esp32_buffer_operation_mode = spi_rx_buffer[0];
+		
 		seq_state = 0;
 		result = DATA_COMM_SUCCESS;
 		break;
@@ -1964,6 +1968,7 @@ uint8_t ESP32_Date_And_Time_Read(void){
 		esp32_buffer_time[0] = spi_rx_buffer[3];
 		esp32_buffer_time[1] = spi_rx_buffer[4];
 		esp32_buffer_time[2] = spi_rx_buffer[5];
+		esp32_buffer_alarm_event = spi_rx_buffer[6];
 		
 		seq_state = 0;
 		result = DATA_COMM_SUCCESS;

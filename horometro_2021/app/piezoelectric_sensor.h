@@ -5,7 +5,6 @@
  *  Author: mtorres
  */ 
 
-
 #ifndef PIEZOELECTRIC_SENSOR_H_
 #define PIEZOELECTRIC_SENSOR_H_
 

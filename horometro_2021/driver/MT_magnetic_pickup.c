@@ -112,8 +112,12 @@ uint16_t Magnetic_Pickup_Get_Freq_Hz(void){
 	bin_value = period_bin_average_value;
 	sei();
 	
-	freq_value_hz = (uint32_t)ACTUAL_F_CPU_HZ / ((uint32_t)bin_value * TIMER1_PRESCALER_VALUE);
-
+	if(system_flags & (1 << MAG_PICKUP_TIMEOUT_FLAG)){
+		freq_value_hz = 0;
+	}else{
+		freq_value_hz = (uint32_t)ACTUAL_F_CPU_HZ / ((uint32_t)bin_value * TIMER1_PRESCALER_VALUE);		
+	}	
+	
 	return freq_value_hz; 
 }
 
@@ -127,7 +131,11 @@ uint16_t Magnetic_Pickup_Get_Freq_RPM(void){
 	bin_value = period_bin_average_value;
 	sei();
 
-	freq_value_rpm = ((uint32_t)ACTUAL_F_CPU_HZ * 60) / ((uint32_t)bin_value * TIMER1_PRESCALER_VALUE);
+	if(system_flags & (1 << MAG_PICKUP_TIMEOUT_FLAG)){
+		freq_value_rpm = 0;
+	}else{
+		freq_value_rpm = ((uint32_t)ACTUAL_F_CPU_HZ * 60) / ((uint32_t)bin_value * TIMER1_PRESCALER_VALUE);	
+	}
 	
 	return freq_value_rpm;	
 
