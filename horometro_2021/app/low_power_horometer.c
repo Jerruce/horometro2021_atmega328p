@@ -1338,19 +1338,19 @@ uint8_t ESP32_Main_Screen_Display_Update(void){
 		
 	case 14:
 		
-		//temp = ESP32_Turn_Off();
-		//if(temp == DATA_COMM_SUCCESS){
-			//seq_state = 0;
-			//result = SEQUENCE_COMPLETE;
-		//}else if(temp == DATA_COMM_FAIL){
-			//seq_state = 0;
-			//result = SEQUENCE_COMPLETE;
-		//}else{
-			////Does nothing
-		//}
+		temp = ESP32_Turn_Off();
+		if(temp == DATA_COMM_SUCCESS){
+			seq_state = 0;
+			result = SEQUENCE_COMPLETE;
+		}else if(temp == DATA_COMM_FAIL){
+			seq_state = 0;
+			result = SEQUENCE_COMPLETE;
+		}else{
+			//Does nothing
+		}
 		
-		seq_state = 0;
-		result = SEQUENCE_COMPLETE;
+		//seq_state = 0;
+		//result = SEQUENCE_COMPLETE;
 		
 		break;
 		
@@ -1565,19 +1565,19 @@ uint8_t ESP32_Alarm_Screen_Display_Update(void){
 		
 	case 14:
 		
-		//temp = ESP32_Turn_Off();
-		//if(temp == DATA_COMM_SUCCESS){
-		//seq_state = 0;
-		//result = SEQUENCE_COMPLETE;
-		//}else if(temp == DATA_COMM_FAIL){
-		//seq_state = 0;
-		//result = SEQUENCE_COMPLETE;
-		//}else{
-		////Does nothing
-		//}
+		temp = ESP32_Turn_Off();
+		if(temp == DATA_COMM_SUCCESS){
+			seq_state = 0;
+			result = SEQUENCE_COMPLETE;
+		}else if(temp == DATA_COMM_FAIL){
+			seq_state = 0;
+			result = SEQUENCE_COMPLETE;
+		}else{
+			//Does nothing
+		}
 		
-		seq_state = 0;
-		result = SEQUENCE_COMPLETE;
+		//seq_state = 0;
+		//result = SEQUENCE_COMPLETE;
 		
 		break;
 		
@@ -1662,19 +1662,19 @@ uint8_t ESP32_Calibration_Screen_Display_Update(void){
 		
 	case 6:
 		
-		//temp = ESP32_Turn_Off();
-		//if(temp == DATA_COMM_SUCCESS){
-			//seq_state = 0;
-			//result = SEQUENCE_COMPLETE;
-		//}else if(temp == DATA_COMM_FAIL){
-			//seq_state = 0;
-			//result = SEQUENCE_COMPLETE;
-		//}else{
-			////Does nothing
-		//}
+		temp = ESP32_Turn_Off();
+		if(temp == DATA_COMM_SUCCESS){
+			seq_state = 0;
+			result = SEQUENCE_COMPLETE;
+		}else if(temp == DATA_COMM_FAIL){
+			seq_state = 0;
+			result = SEQUENCE_COMPLETE;
+		}else{
+			//Does nothing
+		}
 		
-		seq_state = 0;
-		result = SEQUENCE_COMPLETE;
+		//seq_state = 0;
+		//result = SEQUENCE_COMPLETE;
 		break;
 		
 	default:
@@ -2136,32 +2136,32 @@ uint8_t Wifi_Connection_Sequence(void){
 
 		temp = 0;
 		
-		//temp = ESP32_Turn_Off();
-		//if(temp == DATA_COMM_SUCCESS){
-			//seq_state = 0;
-			//wifi_connected = 0;
-			//result = SEQUENCE_COMPLETE;
-			//G1_Get_Button_Press(1 << MODE_BUTTON);
-			//G1_Get_Button_Long(1 << MODE_BUTTON);
-			//G1_Get_Button_Press(1 << WIFI_BUTTON);
-			//
-		//}else if(temp == DATA_COMM_FAIL){
-			//seq_state = 0;
-			//wifi_connected = 0;
-			//result = SEQUENCE_COMPLETE;
-			//G1_Get_Button_Press(1 << MODE_BUTTON);
-			//G1_Get_Button_Long(1 << MODE_BUTTON);
-			//G1_Get_Button_Press(1 << WIFI_BUTTON);		
-		//}else{
-			////Does nothing
-		//}
+		temp = ESP32_Turn_Off();
+		if(temp == DATA_COMM_SUCCESS){
+			seq_state = 0;
+			wifi_connected = 0;
+			result = SEQUENCE_COMPLETE;
+			G1_Get_Button_Press(1 << MODE_BUTTON);
+			G1_Get_Button_Long(1 << MODE_BUTTON);
+			G1_Get_Button_Press(1 << WIFI_BUTTON);
+			
+		}else if(temp == DATA_COMM_FAIL){
+			seq_state = 0;
+			wifi_connected = 0;
+			result = SEQUENCE_COMPLETE;
+			G1_Get_Button_Press(1 << MODE_BUTTON);
+			G1_Get_Button_Long(1 << MODE_BUTTON);
+			G1_Get_Button_Press(1 << WIFI_BUTTON);		
+		}else{
+			//Does nothing
+		}
 		
-		seq_state = 0;
-		wifi_connected = 0;
-		result = SEQUENCE_COMPLETE;
-		G1_Get_Button_Press(1 << MODE_BUTTON);
-		G1_Get_Button_Long(1 << MODE_BUTTON);
-		G1_Get_Button_Press(1 << WIFI_BUTTON);
+		//seq_state = 0;
+		//wifi_connected = 0;
+		//result = SEQUENCE_COMPLETE;
+		//G1_Get_Button_Press(1 << MODE_BUTTON);
+		//G1_Get_Button_Long(1 << MODE_BUTTON);
+		//G1_Get_Button_Press(1 << WIFI_BUTTON);
 		
 		break;
 		
