@@ -2027,7 +2027,8 @@ uint8_t ESP32_Alarm1_Setpoint_Read(void){
 	
 		PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
 		SPI1_Master_Tx_Bitstream(4, spi_tx_buffer, spi_rx_buffer);
-		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);_delay_us(50);
+		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
+		_delay_us(50);
 		seq_state++;
 		
 		break;
@@ -2054,7 +2055,8 @@ uint8_t ESP32_Alarm1_Setpoint_Read(void){
 	
 		PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
 		SPI1_Master_Tx_Bitstream(ALARM1_SETPOINT_READ_FRAME_SIZE, spi_tx_buffer, spi_rx_buffer);
-		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);_delay_us(50);
+		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
+		_delay_us(50);
 		esp32_buffer_alarm1_setpoint = (((uint32_t)spi_rx_buffer[3]) << 24) | (((uint32_t)spi_rx_buffer[2]) << 16) | (((uint32_t)spi_rx_buffer[1]) << 8) | (spi_rx_buffer[0]);
 		seq_state = 0;
 		result = DATA_COMM_SUCCESS;
@@ -2114,7 +2116,8 @@ uint8_t ESP32_Alarm2_Setpoint_Read(void){
 		
 		PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
 		SPI1_Master_Tx_Bitstream(4, spi_tx_buffer, spi_rx_buffer);
-		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);_delay_us(50);
+		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
+		_delay_us(50);
 		seq_state++;
 		
 		break;
@@ -2141,7 +2144,8 @@ uint8_t ESP32_Alarm2_Setpoint_Read(void){
 	
 		PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
 		SPI1_Master_Tx_Bitstream(ALARM2_SETPOINT_READ_FRAME_SIZE, spi_tx_buffer, spi_rx_buffer);
-		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);_delay_us(50);
+		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
+		_delay_us(50);
 		esp32_buffer_alarm2_setpoint = (((uint32_t)spi_rx_buffer[3]) << 24) | (((uint32_t)spi_rx_buffer[2]) << 16) | (((uint32_t)spi_rx_buffer[1]) << 8) | (spi_rx_buffer[0]);
 		seq_state = 0;
 		result = DATA_COMM_SUCCESS;
@@ -2201,7 +2205,8 @@ uint8_t ESP32_Alarm3_Setpoint_Read(void){
 	
 		PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
 		SPI1_Master_Tx_Bitstream(4, spi_tx_buffer, spi_rx_buffer);
-		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);_delay_us(50);
+		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
+		_delay_us(50);
 		seq_state++;
 		
 		break;
@@ -2228,7 +2233,8 @@ uint8_t ESP32_Alarm3_Setpoint_Read(void){
 	
 		PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
 		SPI1_Master_Tx_Bitstream(ALARM3_SETPOINT_READ_FRAME_SIZE, spi_tx_buffer, spi_rx_buffer);
-		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);_delay_us(50);
+		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
+		_delay_us(50);
 		esp32_buffer_alarm3_setpoint = (((uint32_t)spi_rx_buffer[3]) << 24) | (((uint32_t)spi_rx_buffer[2]) << 16) | (((uint32_t)spi_rx_buffer[1]) << 8) | (spi_rx_buffer[0]);
 		seq_state = 0;
 		result = DATA_COMM_SUCCESS;

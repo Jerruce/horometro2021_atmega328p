@@ -57,8 +57,6 @@ void System_Initialize(void){
 	Analog_Comparator_Disable();
 	Timer0_Interrupt_Disable();
 	Magnetic_Pickup_Disable();
-	
-	alarm_status_flags |= (1 << E1_FLAG);
 }
 
 
@@ -219,6 +217,8 @@ void System_Sequence(void){
 	
 	uint16_t frecuencia;
 	
+	uint16_t  my_param_status;
+	
 	char texto[50];	
 	
 	switch(system_mode){
@@ -286,6 +286,10 @@ void System_Sequence(void){
 		
 		frecuencia = Magnetic_Pickup_Get_Freq_Hz();
 		sprintf(texto, "Freq(Hz): %d\r\n", frecuencia);
+		UARTn_Tx_String(UART0, texto);
+		
+		//my_param_status = ESP32_Buffer_Parameters_Status_Get();
+		sprintf(texto, "param_status: 0x%04x\r\n", parameter_status_flag);
 		UARTn_Tx_String(UART0, texto);
 		
 		UARTn_Tx_Byte(UART0, '\n');
@@ -364,6 +368,8 @@ void Vibration_Sense_Calibration_Sequence(void){
 		Piezoelectric_Circuit_PSU_On();
 		/* Wait until the power supply sets up */
 		_delay_ms(PSU_SW_WAIT_PERIOD_MS);
+	
+		Magnetic_Pickup_Clear_Freq();
 	
 		/* Start with the LED off */
 		PORT_ACCEL_SENSING_LED &= ~(1 << ACCEL_SENSING_LED);
@@ -550,6 +556,8 @@ void Vibration_Sense_Only_Sequence(void){
 		Piezoelectric_Circuit_PSU_On();
 		/* Wait until the power supply sets up and reset the calibration counter */
 		_delay_ms(PSU_SW_WAIT_PERIOD_MS);
+
+		Magnetic_Pickup_Clear_Freq();
 
 		cli();
 		/* Clear the INT0 flag */
@@ -1693,25 +1701,7 @@ uint8_t Wifi_Connection_Sequence(void){
 	switch(seq_state){
 		
 	case 0:
-	
-		/* System mode */
-		ESP32_Buffer_Operation_Mode_Set(system_mode);
-		/* Battery level */
-		ESP32_Buffer_Battery_Level_Set(Battery_Level_Get());
-		/* Alarm setpoints */
-		ESP32_Buffer_Alarm1_Setpoint_Set(Alarm1_Setpoint_Get());
-		ESP32_Buffer_Alarm2_Setpoint_Set(Alarm2_Setpoint_Get());
-		ESP32_Buffer_Alarm3_Setpoint_Set(Alarm3_Setpoint_Get());
-		/* Alarm counters */
-		Alarm1_Time_Get(&new_hh, &new_mm, &new_ss);
-		ESP32_Buffer_Alarm1_Counter_Set(new_hh);
-		Alarm2_Time_Get(&new_hh, &new_mm, &new_ss);
-		ESP32_Buffer_Alarm2_Counter_Set(new_hh);
-		Alarm3_Time_Get(&new_hh, &new_mm, &new_ss);
-		ESP32_Buffer_Alarm3_Counter_Set(new_hh);
-		/* General motor counter */
-		Working_Time_Get(&new_hh, &new_mm, &new_ss);
-		ESP32_Buffer_Motor_Counter_Set(new_hh);
+
 		/* Date and time */
 		cli();
 		Soft_RTC1_Get_Date(new_date, new_date + 1, new_date + 2);
@@ -1722,7 +1712,28 @@ uint8_t Wifi_Connection_Sequence(void){
 		ESP32_Buffer_Alarms_Status_Set(alarm_status_flags);
 		/* Alarm events */
 		ESP32_Buffer_Alarms_Events_Set(alarm_event_flags);
-		
+	
+		if(!wifi_connected){
+			/* System mode */
+			ESP32_Buffer_Operation_Mode_Set(system_mode);
+			/* Battery level */
+			ESP32_Buffer_Battery_Level_Set(Battery_Level_Get());
+			/* Alarm setpoints */
+			ESP32_Buffer_Alarm1_Setpoint_Set(Alarm1_Setpoint_Get());
+			ESP32_Buffer_Alarm2_Setpoint_Set(Alarm2_Setpoint_Get());
+			ESP32_Buffer_Alarm3_Setpoint_Set(Alarm3_Setpoint_Get());
+			/* Alarm counters */
+			Alarm1_Time_Get(&new_hh, &new_mm, &new_ss);
+			ESP32_Buffer_Alarm1_Counter_Set(new_hh);
+			Alarm2_Time_Get(&new_hh, &new_mm, &new_ss);
+			ESP32_Buffer_Alarm2_Counter_Set(new_hh);
+			Alarm3_Time_Get(&new_hh, &new_mm, &new_ss);
+			ESP32_Buffer_Alarm3_Counter_Set(new_hh);
+			/* General motor counter */
+			Working_Time_Get(&new_hh, &new_mm, &new_ss);
+			ESP32_Buffer_Motor_Counter_Set(new_hh);			
+		}
+	
 		seq_state++;
 	
 		break;
@@ -1736,6 +1747,25 @@ uint8_t Wifi_Connection_Sequence(void){
 
 
 	case 2:
+	
+		temp = ESP32_Date_And_Time_Write();
+		if(temp == DATA_COMM_SUCCESS){
+			alarm_event_flags = 0;
+			
+			if(wifi_connected){
+				seq_state = 14;
+			}else{
+				seq_state++;		
+			}
+		
+		}else if(temp == DATA_COMM_FAIL){
+			seq_state = 24;
+		}else{
+			//Does nothing
+		}
+		break;
+
+	case 3:
 		
 		temp = ESP32_Operation_Mode_Write();
 		if(temp == DATA_COMM_SUCCESS){
@@ -1748,7 +1778,7 @@ uint8_t Wifi_Connection_Sequence(void){
 		break;
 
 		
-	case 3:
+	case 4:
 		
 		temp = ESP32_Battery_Level_Status_Write();
 		if(temp == DATA_COMM_SUCCESS){
@@ -1760,7 +1790,7 @@ uint8_t Wifi_Connection_Sequence(void){
 		}
 		break;
 		
-	case 4:
+	case 5:
 		
 		temp = ESP32_Alarm1_Setpoint_Write();
 		if(temp == DATA_COMM_SUCCESS){
@@ -1772,7 +1802,7 @@ uint8_t Wifi_Connection_Sequence(void){
 		}
 		break;
 		
-	case 5:
+	case 6:
 		
 		temp = ESP32_Alarm1_Counter_Write();
 		if(temp == DATA_COMM_SUCCESS){
@@ -1784,7 +1814,7 @@ uint8_t Wifi_Connection_Sequence(void){
 		}
 		break;
 		
-	case 6:
+	case 7:
 		
 		temp = ESP32_Alarm2_Setpoint_Write();
 		if(temp == DATA_COMM_SUCCESS){
@@ -1796,7 +1826,7 @@ uint8_t Wifi_Connection_Sequence(void){
 		}
 		break;
 		
-	case 7:
+	case 8:
 		
 		temp = ESP32_Alarm2_Counter_Write();
 		if(temp == DATA_COMM_SUCCESS){
@@ -1808,7 +1838,7 @@ uint8_t Wifi_Connection_Sequence(void){
 		}
 		break;
 		
-	case 8:
+	case 9:
 		
 		temp = ESP32_Alarm3_Setpoint_Write();
 		if(temp == DATA_COMM_SUCCESS){
@@ -1820,7 +1850,7 @@ uint8_t Wifi_Connection_Sequence(void){
 		}
 		break;
 		
-	case 9:
+	case 10:
 		
 		temp = ESP32_Alarm3_Counter_Write();
 		if(temp == DATA_COMM_SUCCESS){
@@ -1832,7 +1862,7 @@ uint8_t Wifi_Connection_Sequence(void){
 		}
 		break;
 		
-	case 10:
+	case 11:
 		
 		temp = ESP32_Motor_Counter_Write();
 		if(temp == DATA_COMM_SUCCESS){
@@ -1843,55 +1873,25 @@ uint8_t Wifi_Connection_Sequence(void){
 			//Does nothing
 		}
 		break;
-		
-	case 11:
-		
-		temp = ESP32_Date_And_Time_Write();
-		if(temp == DATA_COMM_SUCCESS){
-			alarm_event_flags = 0;
-			seq_state++;
-		}else if(temp == DATA_COMM_FAIL){
-			seq_state = 24;
-		}else{
-			//Does nothing
-		}
-		break;
-		
+			
 	case 12:
 		
 		temp = ESP32_Alarms_Status_Write();
 		if(temp == DATA_COMM_SUCCESS){
-			seq_state++;			
-		}else if(temp == DATA_COMM_FAIL){
-			seq_state = 24;
-		}else{
-			//Does nothing
-		}
-		break;
-		
-	case 13:
-		
-		temp = ESP32_Epaper_Screen01_Update();
-		if(temp == DATA_COMM_SUCCESS){
 			if(wifi_connected){
-				seq_state = 15;
+				seq_state = 14;
 			}else{
 				seq_state++;
 			}
-			cli();
-			system_flags &= ~((uint32_t)1 << SHOW_MAIN_OR_ALARM_SCREEN_FLAG);
-			sei();			
+						
 		}else if(temp == DATA_COMM_FAIL){
 			seq_state = 24;
-			cli();
-			system_flags &= ~((uint32_t)1 << SHOW_MAIN_OR_ALARM_SCREEN_FLAG);
-			sei();			
 		}else{
 			//Does nothing
 		}
 		break;
-		
-	case 14:
+			
+	case 13:
 	
 		temp = ESP32_WiFi_Enable();
 		if(temp == DATA_COMM_SUCCESS){
@@ -1903,6 +1903,25 @@ uint8_t Wifi_Connection_Sequence(void){
 			//Does nothing
 		}
 		break;		
+	
+	
+	case 14:
+	
+		temp = ESP32_Epaper_Screen01_Update();
+		if(temp == DATA_COMM_SUCCESS){
+			seq_state++;
+			cli();
+			system_flags &= ~((uint32_t)1 << SHOW_MAIN_OR_ALARM_SCREEN_FLAG);
+			sei();
+		}else if(temp == DATA_COMM_FAIL){
+			seq_state = 24;
+			cli();
+			system_flags &= ~((uint32_t)1 << SHOW_MAIN_OR_ALARM_SCREEN_FLAG);
+			sei();
+		}else{
+		//Does nothing
+		}
+		break;	
 	
 	case 15:
 			
@@ -1963,8 +1982,8 @@ uint8_t Wifi_Connection_Sequence(void){
 		}else{
 			alarm_status_flags &= ~(1 << E3_FLAG);
 			cli();
-			system_flags &= ~(1 << ALARM_01_REACHED_FLAG);
-			Alarm1_Time_Reset();
+			system_flags &= ~(1 << ALARM_03_REACHED_FLAG);
+			Alarm3_Time_Reset();
 			sei();			
 		}
 		

@@ -107,9 +107,9 @@
 
 #define PSU_SW_WAIT_PERIOD_MS					50	// 50ms 
 #define HOROMETER_SECOND_N_STEPS				32	// 32 * 31.25ms = 1 sec
-#define CALIBRATION_COUNT_DISPLAY_PERIOD_SEC	20  // 20 seconds
-#define BATTERY_MEASURE_PERIOD_SEC				2//900 // 900 seconds = 15 minutes
-#define WORKING_COUNT_DISPLAY_PERIOD_SEC		60//3600 // 3600 seconds = 1 hour
+#define CALIBRATION_COUNT_DISPLAY_PERIOD_SEC	60  // 60 seconds
+#define BATTERY_MEASURE_PERIOD_SEC				1//900 // 900 seconds = 15 minutes
+#define WORKING_COUNT_DISPLAY_PERIOD_SEC		300//3600 // 3600 seconds = 1 hour
 #define WEB_PARAMETERS_CHECK_PERIOD_SEC			2
 
 // ----------- Defines for current measurement -----------------
@@ -127,6 +127,7 @@
 
 #define MOTOR_STUCK_CURRENT_UPPER_THRESHOLD		11
 #define MOTOR_STUCK_CURRENT_LOWER_THRESHOLD		9
+
 
 // ----------- Defines for the magnetic pick-up -----------------
 

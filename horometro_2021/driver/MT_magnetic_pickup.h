@@ -52,7 +52,7 @@ void Magnetic_Pickup_Disable(void);
 
 uint16_t Magnetic_Pickup_Get_Freq_Hz(void);
 uint16_t Magnetic_Pickup_Get_Freq_RPM(void);
-
+void Magnetic_Pickup_Clear_Freq(void);
 
 /* Inline functions */
 

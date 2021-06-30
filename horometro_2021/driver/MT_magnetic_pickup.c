@@ -10,10 +10,10 @@
 
 /* Variable definition */
 
-volatile uint16_t period_bin_average_value = PICKUP_WAITING_BEGINNING;
+volatile uint16_t period_bin_average_value = 0;
 volatile uint8_t cycle_counter = 0;
 volatile uint32_t accumulator = 0;
-volatile uint8_t pickup_state = 0;		// pickup state (1 or 0)
+volatile uint8_t pickup_state = PICKUP_WAITING_BEGINNING;		// pickup state (1 or 0)
 
 
 /* Function definition */
@@ -113,9 +113,17 @@ uint16_t Magnetic_Pickup_Get_Freq_Hz(void){
 	sei();
 	
 	if(system_flags & (1 << MAG_PICKUP_TIMEOUT_FLAG)){
+		
 		freq_value_hz = 0;
+	
 	}else{
-		freq_value_hz = (uint32_t)ACTUAL_F_CPU_HZ / ((uint32_t)bin_value * TIMER1_PRESCALER_VALUE);		
+		
+		if(bin_value == 0){
+			freq_value_hz = 0;
+		}else{		
+			freq_value_hz = (uint32_t)ACTUAL_F_CPU_HZ / ((uint32_t)bin_value * TIMER1_PRESCALER_VALUE);		
+		}
+		
 	}	
 	
 	return freq_value_hz; 
@@ -132,12 +140,28 @@ uint16_t Magnetic_Pickup_Get_Freq_RPM(void){
 	sei();
 
 	if(system_flags & (1 << MAG_PICKUP_TIMEOUT_FLAG)){
+		
 		freq_value_rpm = 0;
+	
 	}else{
-		freq_value_rpm = ((uint32_t)ACTUAL_F_CPU_HZ * 60) / ((uint32_t)bin_value * TIMER1_PRESCALER_VALUE);	
+		
+		if(bin_value == 0){
+			freq_value_rpm = 0;
+		}else{
+			freq_value_rpm = ((uint32_t)ACTUAL_F_CPU_HZ * 60) / ((uint32_t)bin_value * TIMER1_PRESCALER_VALUE);
+		}
+		
 	}
 	
 	return freq_value_rpm;	
 
 }
 
+void Magnetic_Pickup_Clear_Freq(void){
+	cli();
+	period_bin_average_value = 0;
+	cycle_counter = 0;
+	accumulator = 0;
+	pickup_state = PICKUP_WAITING_BEGINNING;
+	sei();	
+}
