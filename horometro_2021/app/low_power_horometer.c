@@ -280,6 +280,7 @@ void System_Sequence(void){
 		UARTn_Tx_String(UART0, texto);				
 		
 		corriente = RMS_Current_Get();
+		corriente *= 1000;
 		corriente_ent = (uint32_t)corriente;
 		sprintf(texto, "I(mA):%d\r\n", corriente_ent);
 		UARTn_Tx_String(UART0, texto);
@@ -289,8 +290,8 @@ void System_Sequence(void){
 		UARTn_Tx_String(UART0, texto);
 		
 		//my_param_status = ESP32_Buffer_Parameters_Status_Get();
-		sprintf(texto, "param_status: 0x%04x\r\n", parameter_status_flag);
-		UARTn_Tx_String(UART0, texto);
+		//sprintf(texto, "param_status: 0x%04x\r\n", parameter_status_flag);
+		//UARTn_Tx_String(UART0, texto);
 		
 		UARTn_Tx_Byte(UART0, '\n');
 		
@@ -368,7 +369,8 @@ void Vibration_Sense_Calibration_Sequence(void){
 		Piezoelectric_Circuit_PSU_On();
 		/* Wait until the power supply sets up */
 		_delay_ms(PSU_SW_WAIT_PERIOD_MS);
-	
+		
+		Current_Clear();
 		Magnetic_Pickup_Clear_Freq();
 	
 		/* Start with the LED off */
@@ -558,6 +560,7 @@ void Vibration_Sense_Only_Sequence(void){
 		_delay_ms(PSU_SW_WAIT_PERIOD_MS);
 
 		Magnetic_Pickup_Clear_Freq();
+		Current_Clear();
 
 		cli();
 		/* Clear the INT0 flag */

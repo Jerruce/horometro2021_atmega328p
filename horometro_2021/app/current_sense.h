@@ -23,5 +23,6 @@ void Peak_Current_Reset(void);
 float Instant_Current_Get(void);
 float Peak_Current_Get(void);
 float RMS_Current_Get(void);
+void Current_Clear(void);
 
 #endif /* MT_CURRENT_SENSE_H_ */

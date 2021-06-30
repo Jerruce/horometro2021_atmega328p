@@ -20,7 +20,8 @@ static float rms_current_amp = 0.0;
 void Current_Measure(void){
 	
 	uint16_t adc_bin_val;
-	float	adc_volt;
+	float adc_volt;
+	float input_volt;
 	float rectified_current;	 
 	
 	/* Select the proper channel */
@@ -36,8 +37,10 @@ void Current_Measure(void){
 	/* Measure voltage in the ADC input */
 	adc_bin_val = ADC;
 	adc_volt = (adc_bin_val * ADC_REF_VOLTAGE) / 1024.0;
-	instant_current_amp = CURRENT_SENSE_CIRCUIT_GAIN_01 * (((adc_volt / CURRENT_SENSE_CIRCUIT_GAIN_02) - 0.5) / CURRENT_SENSE_RESISTOR_OHM);
+	input_volt = ((adc_volt - 0.5) / CURRENT_SENSE_CIRCUIT_GAIN_02) + 0.5;
+	instant_current_amp = (CURRENT_SENSE_CIRCUIT_GAIN_01 * (0.5 - input_volt)) / CURRENT_SENSE_RESISTOR_OHM;	
 	instant_current_amp = (CURRENT_SENSE_SPAN * instant_current_amp) + CURRENT_SENSE_OFFSET;
+
 	
 	/* Rectify the instant current */
 	if(instant_current_amp < 0.0){
@@ -50,7 +53,8 @@ void Current_Measure(void){
 	if(rectified_current > peak_current_amp){
 		peak_current_amp = rectified_current;
 	}
- 	
+
+	
 }
 
 
@@ -76,4 +80,10 @@ float Peak_Current_Get(void){
 
 float RMS_Current_Get(void){
 	return rms_current_amp;
+}
+
+void Current_Clear(void){
+	instant_current_amp = 0;
+	peak_current_amp = 0;
+	rms_current_amp = 0;
 }

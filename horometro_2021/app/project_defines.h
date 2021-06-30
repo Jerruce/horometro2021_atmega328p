@@ -108,8 +108,8 @@
 #define PSU_SW_WAIT_PERIOD_MS					50	// 50ms 
 #define HOROMETER_SECOND_N_STEPS				32	// 32 * 31.25ms = 1 sec
 #define CALIBRATION_COUNT_DISPLAY_PERIOD_SEC	60  // 60 seconds
-#define BATTERY_MEASURE_PERIOD_SEC				1//900 // 900 seconds = 15 minutes
-#define WORKING_COUNT_DISPLAY_PERIOD_SEC		300//3600 // 3600 seconds = 1 hour
+#define BATTERY_MEASURE_PERIOD_SEC				1//9
+#define WORKING_COUNT_DISPLAY_PERIOD_SEC		3600 // 3600 seconds = 1 hour
 #define WEB_PARAMETERS_CHECK_PERIOD_SEC			2
 
 // ----------- Defines for current measurement -----------------
