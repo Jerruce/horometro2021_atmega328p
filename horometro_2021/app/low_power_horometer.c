@@ -471,7 +471,7 @@ void Vibration_Sense_Only_Sequence(void){
 	
 	static uint8_t sequence_state = 0;	
 	static uint8_t measure_enable = 0;
-
+	uint8_t temp = VIBRATION_SENSOR_ONLY_MODE;
 
 	if(measure_enable){
 		
@@ -703,9 +703,15 @@ void Vibration_Sense_Only_Sequence(void){
 				system_flags &= ~((uint32_t)1 << WIFI_COMM_EN_FLAG);
 				sei();
 				
-				/* Go back to the normal mode */
-				sequence_state = 1;
-		
+				temp = ESP32_Buffer_Operation_Mode_Get();
+				if(temp == VIBRATION_CURRENT_PICKUP_SENSOR_MODE){
+					/* Change the operation mode */
+					sequence_state = 3;
+				}else{
+					/* Go back to the normal sequence */
+					sequence_state = 1;				
+				}
+					
 			}
 			
 		}
@@ -721,7 +727,6 @@ void Vibration_Sense_Only_Sequence(void){
 
 
 
-
 void Vibration_Sense_Current_Sense_And_Motor_Speed_Sequence(void){
 	
 	static uint8_t sequence_state = 0;
@@ -729,7 +734,7 @@ void Vibration_Sense_Current_Sense_And_Motor_Speed_Sequence(void){
 	float new_current;
 	uint16_t new_freq_rpm;
 	static uint8_t measure_enable = 0;
-
+	uint8_t temp = VIBRATION_CURRENT_PICKUP_SENSOR_MODE;
 
 	if(measure_enable){
 		
@@ -1019,9 +1024,16 @@ void Vibration_Sense_Current_Sense_And_Motor_Speed_Sequence(void){
 				cli();
 				system_flags &= ~((uint32_t)1 << WIFI_COMM_EN_FLAG);
 				sei();
-			
-				/* Go back to the normal mode */
-				sequence_state = 1;
+				
+				temp = ESP32_Buffer_Operation_Mode_Get();
+				if(temp == VIBRATION_SENSOR_ONLY_MODE){
+					/* Change the operation mode */
+					sequence_state = 3;
+				}else{
+					/* Go back to the normal sequence */
+					sequence_state = 1;
+				}				
+		
 			}
 		
 		}
@@ -2064,7 +2076,6 @@ uint8_t Wifi_Connection_Sequence(void){
 
 		temp = ESP32_Operation_Mode_Read();
 		if(temp == DATA_COMM_SUCCESS){
-			system_mode = ESP32_Buffer_Operation_Mode_Get();
 			seq_state = 17;
 		}else if(temp == DATA_COMM_FAIL){
 			seq_state = 24;
