@@ -24,9 +24,12 @@ int main(void)
 {
 
 	WDT_Off();
-	UART_Initialize();
+	//UART_Initialize();
 	System_Initialize();
 	sei();
+
+	//General_Power_Supply_Circuit_On();
+	//ESP32_Microcontroller_PSU_On();
 
     /* Replace with your application code */
     while (1) 
@@ -36,6 +39,7 @@ int main(void)
 	
 	return  0;
 }
+
 
 
 
@@ -120,11 +124,11 @@ ISR(TIMER2_COMPA_vect){
 			system_flags |= ((uint32_t)1 << SHOW_MAIN_OR_ALARM_SCREEN_FLAG);
 		}
 			
-		counter_1s++;
-		if(counter_1s >= 5){
-			counter_1s = 0;
-			system_flags |= ((uint32_t)1 << SERIAL_MSG_FLAG);
-		}
+		//counter_1s++;
+		//if(counter_1s >= 5){
+			//counter_1s = 0;
+			//system_flags |= ((uint32_t)1 << SERIAL_MSG_FLAG);
+		//}
 	}	
 }
 

@@ -219,6 +219,11 @@ void System_Sequence(void){
 	
 	uint16_t  my_param_status;
 	
+	float volt_batt;
+	uint32_t volt_batt_ent;
+	
+	uint8_t batt_level;
+	
 	char texto[50];	
 	
 	switch(system_mode){
@@ -239,63 +244,71 @@ void System_Sequence(void){
 			break;				
 	}
 	
-	if(system_flags & ((uint32_t)1 << SERIAL_MSG_FLAG)){
+	//if(system_flags & ((uint32_t)1 << SERIAL_MSG_FLAG)){
+		//
+		//cli();
+		//system_flags &= ~((uint32_t)1 << SERIAL_MSG_FLAG);
+		//sei();
 		
-		cli();
-		system_flags &= ~((uint32_t)1 << SERIAL_MSG_FLAG);
-		sei();
-		
-		cli();
-		Soft_RTC1_Get_Date(&dia, &mes, &anio);
-		sei();
-		sprintf(texto, "Fecha:%02d/%02d/%02d\r\n", dia, mes, anio);		
-		UARTn_Tx_String(UART0, texto);
-		
-		cli();
-		Soft_RTC1_Get_Time(&hora, &minuto, &segundo);
-		sei();
-		sprintf(texto, "Hora:%02d:%02d:%02d\r\n", hora, minuto, segundo);
-		UARTn_Tx_String(UART0, texto);
-		
-		sprintf(texto, "Modo:%d\r\n", system_mode);
-		UARTn_Tx_String(UART0, texto);
-		
-		sprintf(texto, "Calib t:%u\r\n", Calib_Time_Get());
-		UARTn_Tx_String(UART0, texto);		
-		
-		Working_Time_Get(&motor_hours, &motor_min, &motor_sec);
-		sprintf(texto, "Motor t:%u\r\n", motor_sec);
-		UARTn_Tx_String(UART0, texto);		
-		
-		Alarm1_Time_Get(&al1_hours, &al1_min, &al1_sec);
-		sprintf(texto, "AL1 t:%u\r\n", al1_sec);
-		UARTn_Tx_String(UART0, texto);	
-		
-		Alarm2_Time_Get(&al2_hours, &al2_min, &al2_sec);
-		sprintf(texto, "AL2 t:%u\r\n", al2_sec);
-		UARTn_Tx_String(UART0, texto);	
-		
-		Alarm3_Time_Get(&al3_hours, &al3_min, &al3_sec);
-		sprintf(texto, "AL3 t:%u\r\n", al3_sec);
-		UARTn_Tx_String(UART0, texto);				
-		
-		corriente = RMS_Current_Get();
-		corriente *= 1000;
-		corriente_ent = (uint32_t)corriente;
-		sprintf(texto, "I(mA):%d\r\n", corriente_ent);
-		UARTn_Tx_String(UART0, texto);
-		
-		frecuencia = Magnetic_Pickup_Get_Freq_Hz();
-		sprintf(texto, "Freq(Hz): %d\r\n", frecuencia);
-		UARTn_Tx_String(UART0, texto);
-		
-		//my_param_status = ESP32_Buffer_Parameters_Status_Get();
-		//sprintf(texto, "param_status: 0x%04x\r\n", parameter_status_flag);
+		//cli();
+		//Soft_RTC1_Get_Date(&dia, &mes, &anio);
+		//sei();
+		//sprintf(texto, "Fecha:%02d/%02d/%02d\r\n", dia, mes, anio);		
 		//UARTn_Tx_String(UART0, texto);
-		
-		UARTn_Tx_Byte(UART0, '\n');
-		
-	}
+		//
+		//cli();
+		//Soft_RTC1_Get_Time(&hora, &minuto, &segundo);
+		//sei();
+		//sprintf(texto, "Hora:%02d:%02d:%02d\r\n", hora, minuto, segundo);
+		//UARTn_Tx_String(UART0, texto);
+		//
+		//sprintf(texto, "Modo:%d\r\n", system_mode);
+		//UARTn_Tx_String(UART0, texto);
+		//
+		//sprintf(texto, "Calib t:%u\r\n", Calib_Time_Get());
+		//UARTn_Tx_String(UART0, texto);		
+		//
+		//Working_Time_Get(&motor_hours, &motor_min, &motor_sec);
+		//sprintf(texto, "Motor t:%u\r\n", motor_sec);
+		//UARTn_Tx_String(UART0, texto);		
+		//
+		//Alarm1_Time_Get(&al1_hours, &al1_min, &al1_sec);
+		//sprintf(texto, "AL1 t:%u\r\n", al1_sec);
+		//UARTn_Tx_String(UART0, texto);	
+		//
+		//Alarm2_Time_Get(&al2_hours, &al2_min, &al2_sec);
+		//sprintf(texto, "AL2 t:%u\r\n", al2_sec);
+		//UARTn_Tx_String(UART0, texto);	
+		//
+		//Alarm3_Time_Get(&al3_hours, &al3_min, &al3_sec);
+		//sprintf(texto, "AL3 t:%u\r\n", al3_sec);
+		//UARTn_Tx_String(UART0, texto);				
+		//
+		//corriente = RMS_Current_Get();
+		//corriente *= 1000;
+		//corriente_ent = (uint32_t)corriente;
+		//sprintf(texto, "I(mA):%d\r\n", corriente_ent);
+		//UARTn_Tx_String(UART0, texto);
+		//
+		//frecuencia = Magnetic_Pickup_Get_Freq_Hz();
+		//sprintf(texto, "Freq(Hz): %d\r\n", frecuencia);
+		//UARTn_Tx_String(UART0, texto);
+
+		//volt_batt = Battery_Voltage_Get();
+		//volt_batt_ent = (uint32_t)(volt_batt * 100);
+		//batt_level = Battery_Level_Get();
+		//sprintf(texto, "Batt(mV): %d\r\n", volt_batt_ent);
+		//UARTn_Tx_String(UART0, texto);
+		//sprintf(texto, "Batt: %d\r\n", batt_level);
+		//UARTn_Tx_String(UART0, texto);
+
+		////my_param_status = ESP32_Buffer_Parameters_Status_Get();
+		////sprintf(texto, "param_status: 0x%04x\r\n", parameter_status_flag);
+		////UARTn_Tx_String(UART0, texto);
+		//
+		//UARTn_Tx_Byte(UART0, '\n');
+		//
+	//}
 	
 }
 
@@ -366,6 +379,7 @@ void Vibration_Sense_Calibration_Sequence(void){
 	
 		/* Enable the vibration sensor */
 		General_Power_Supply_Circuit_On();
+		Battery_Measure_Circuit_PSU_On();
 		Piezoelectric_Circuit_PSU_On();
 		/* Wait until the power supply sets up */
 		_delay_ms(PSU_SW_WAIT_PERIOD_MS);
@@ -555,6 +569,7 @@ void Vibration_Sense_Only_Sequence(void){
 	
 		/* Enable the vibration sensor */
 		General_Power_Supply_Circuit_On();
+		Battery_Measure_Circuit_PSU_On();
 		Piezoelectric_Circuit_PSU_On();
 		/* Wait until the power supply sets up and reset the calibration counter */
 		_delay_ms(PSU_SW_WAIT_PERIOD_MS);
@@ -849,6 +864,7 @@ void Vibration_Sense_Current_Sense_And_Motor_Speed_Sequence(void){
 	
 		/* Enable the vibration sensor */
 		General_Power_Supply_Circuit_On();
+		Battery_Measure_Circuit_PSU_On();
 		Piezoelectric_Circuit_PSU_On();
 		Current_Sense_Circuit_PSU_On();
 		Magnetic_Pickup_Circuit_PSU_On();

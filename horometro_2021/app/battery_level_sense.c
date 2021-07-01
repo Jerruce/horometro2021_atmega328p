@@ -10,6 +10,7 @@
 
 /* Variable definition */
 static uint8_t battery_charge_level = BATTERY_LEVEL_HIGH;
+static float battery_volt = 0;
 
 
 /* Function definition */
@@ -17,8 +18,7 @@ static uint8_t battery_charge_level = BATTERY_LEVEL_HIGH;
 void Battery_Level_Measure(void){
 	
 	uint16_t adc_bin_val;
-	float	battery_volt;
-	
+
 	/* Select the proper channel */
 	ADC_Seleccionar_Canal(VBAT_MEASURE_ADC_CHANNEL);
 	/* Start conversion */
@@ -55,6 +55,11 @@ void Battery_Level_Measure(void){
 		// Does nothing
 	}
 	
+}
+
+
+float Battery_Voltage_Get(void){
+	return battery_volt;
 }
 
 
