@@ -26,10 +26,10 @@ int main(void)
 	WDT_Off();
 	//UART_Initialize();
 	System_Initialize();
+	/* Enable the System Power-Save Mode */
+	//set_sleep_mode(SLEEP_MODE_PWR_SAVE);
+	//sleep_enable();
 	sei();
-
-	//General_Power_Supply_Circuit_On();
-	//ESP32_Microcontroller_PSU_On();
 
     /* Replace with your application code */
     while (1) 

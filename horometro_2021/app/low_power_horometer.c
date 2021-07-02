@@ -229,14 +229,16 @@ void System_Sequence(void){
 	switch(system_mode){
 		
 		case VIBRATION_SENSOR_ONLY_MODE:
+			//sleep_cpu();
 			Vibration_Sense_Only_Sequence();
 			break;
 			
 		case VIBRATION_CURRENT_PICKUP_SENSOR_MODE:
-			Vibration_Sense_Current_Sense_And_Motor_Speed_Sequence();
+			Vibration_Sense_Current_Sense_And_Motor_Speed_Sequence();	
 			break;
 			
 		case VIBRATION_SENSOR_CALIBRATION_MODE:
+			//sleep_cpu();
 			Vibration_Sense_Calibration_Sequence();
 		break;			
 			
@@ -1105,64 +1107,6 @@ void Check_For_Alarm_Events(void){
 	alarm_event_flags |= alarm_change_flags;
 	
 }
-
-
-uint8_t ESP32_Operation_Mode_Update(void){
-	
-	static uint8_t seq_state = 0;
-	uint8_t result = SEQUENCE_IN_PROCESS;
-	uint8_t temp;
-	
-	switch(seq_state){
-		
-	case 0:
-		ESP32_Buffer_Operation_Mode_Set(system_mode);
-		seq_state++;
-		break;		
-		
-	case 1:
-		temp = ESP32_Turn_On();
-		if(temp == DATA_COMM_SUCCESS){
-			seq_state++;
-		}
-		break;
-		
-	case 2:
-		temp = ESP32_Operation_Mode_Write();
-		if(temp == DATA_COMM_SUCCESS){
-			seq_state++;
-		}else if(temp == DATA_COMM_FAIL){
-			seq_state++;
-			result = SEQUENCE_COMPLETE;
-		}else{
-			//Does nothing
-		}
-		break;	
-			
-	case 3:
-	
-		//temp = ESP32_Turn_Off();
-		//if(temp == DATA_COMM_SUCCESS){
-			//seq_state = 0;
-			//result = SEQUENCE_COMPLETE;
-		//}else if(temp == DATA_COMM_FAIL){
-			//seq_state = 0;
-			//result = SEQUENCE_COMPLETE;
-		//}else{
-			////Does nothing
-		//}
-		seq_state = 0;
-		result = SEQUENCE_COMPLETE;
-		break;	
-			
-	default:
-		break;
-		
-	}
-
-	return result;
-}
-
 
 
 uint8_t ESP32_Main_Screen_Display_Update(void){
