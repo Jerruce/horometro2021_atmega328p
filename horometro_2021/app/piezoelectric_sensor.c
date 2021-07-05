@@ -44,13 +44,13 @@ static uint8_t alarm3_time_seconds = 0;
 void Piezoelectric_Sensor_Initialize(void){
 	
 	/* Configure acceleration sensor pin as INPUT and enable the internal pull-up resistor if required */
-	PIN_ACCEL_SENSOR &= ~(1 << ACCEL_SENSOR);
-	PORT_ACCEL_SENSOR |= (1 << ACCEL_SENSOR);
+	DDR_ACCEL_SENSOR &= ~(1 << ACCEL_SENSOR);
+	//PORT_ACCEL_SENSOR |= (1 << ACCEL_SENSOR);
 	
-	/* Configure external interrupt INT1 to activate with every rising edge */
+	/* Configure external interrupt INT0 to activate with every RISING EDGE */
 	EICRA |= (1 << ISC00);
 	EICRA |= (1 << ISC01);
-	
+		
 	/* Clear the INT0 flag */
 	EIFR |= (1 << INTF0);	
 }

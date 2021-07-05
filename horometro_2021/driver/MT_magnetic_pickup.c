@@ -45,7 +45,7 @@ void Magnetic_Pickup_Initialize(void){
 	
 	/* Configure pick-up pin as INPUT and enable the internal pull-up resistor if required */
 	PIN_PICK_UP_SENSOR &= ~(1 << PICK_UP_SENSOR);
-	PORT_PICK_UP_SENSOR |= (1 << PICK_UP_SENSOR);
+	//PORT_PICK_UP_SENSOR |= (1 << PICK_UP_SENSOR);
 	
 	/* Configure external interrupt INT1 to activate with every falling edge */
 	EICRA &= ~(1 << ISC10);

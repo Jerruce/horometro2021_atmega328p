@@ -47,16 +47,17 @@ void System_Initialize(void){
 	/* Initialize peripherals */
 	LEDs_Initialize();
 	Soft_RTC_Initialize();
-	ADC_Initialize();
-	ESP32_Comm_Interface_Initialize();
+	ADC_Disable();	
+	ESP32_Comm_Interface_Disable();
 	Timer0_Initialize();
 	Timer2_Initialize();
 	Piezoelectric_Sensor_Initialize();
 	Magnetic_Pickup_Initialize();
 	/* Disable unused peripherals */
-	Analog_Comparator_Disable();
+	Unused_Peripherals_Disable();
 	Timer0_Interrupt_Disable();
 	Magnetic_Pickup_Disable();
+
 }
 
 
@@ -143,6 +144,7 @@ void ADC_Initialize(void){
 	my_adc.trigger_source = ADC_Free_Running_Mode;
 	my_adc.interrupt_mask = ADC_Interrupt_Disabled;
 	
+	PRR0 &= ~(1 << PRADC);
 	ADC_Configurar(&my_adc);
 	
 	/* Disable digital I/Os in the pins that will be used with the ADC (for power saving) */ 
@@ -152,6 +154,7 @@ void ADC_Initialize(void){
 
 void ADC_Disable(void){
 	ADCSRA &= ~(1 << ADEN);
+	PRR0 |= (1 << PRADC);
 }
 
 
@@ -229,6 +232,7 @@ void System_Sequence(void){
 	switch(system_mode){
 		
 		case VIBRATION_SENSOR_ONLY_MODE:
+			ADC_Disable();
 			//sleep_cpu();
 			Vibration_Sense_Only_Sequence();
 			break;
@@ -238,6 +242,7 @@ void System_Sequence(void){
 			break;
 			
 		case VIBRATION_SENSOR_CALIBRATION_MODE:
+			ADC_Disable();
 			//sleep_cpu();
 			Vibration_Sense_Calibration_Sequence();
 		break;			
@@ -353,6 +358,7 @@ void Vibration_Sense_Calibration_Sequence(void){
 			system_flags &= ~((uint32_t)1 << BATTERY_LEVEL_MEASURE_FLAG);
 			sei();
 		
+			ADC_Initialize();
 			Battery_Level_Measure();
 		}	
 		
@@ -516,6 +522,7 @@ void Vibration_Sense_Only_Sequence(void){
 			system_flags &= ~((uint32_t)1 << BATTERY_LEVEL_MEASURE_FLAG);
 			sei();
 		
+			ADC_Initialize();
 			Battery_Level_Measure();
 		}	
 	
@@ -1156,6 +1163,7 @@ uint8_t ESP32_Main_Screen_Display_Update(void){
 		break;	
 		
 	case 1:
+		ESP32_Comm_Interface_Initialize();
 		temp = ESP32_Turn_On();
 		if(temp == DATA_COMM_SUCCESS){
 			seq_state++;
@@ -1314,16 +1322,15 @@ uint8_t ESP32_Main_Screen_Display_Update(void){
 		if(temp == DATA_COMM_SUCCESS){
 			seq_state = 0;
 			result = SEQUENCE_COMPLETE;
+			ESP32_Comm_Interface_Disable();
 		}else if(temp == DATA_COMM_FAIL){
 			seq_state = 0;
 			result = SEQUENCE_COMPLETE;
+			ESP32_Comm_Interface_Disable();
 		}else{
 			//Does nothing
 		}
-		
-		//seq_state = 0;
-		//result = SEQUENCE_COMPLETE;
-		
+				
 		break;
 		
 	default:
@@ -1382,6 +1389,7 @@ uint8_t ESP32_Alarm_Screen_Display_Update(void){
 		break;
 		
 	case 1:
+		ESP32_Comm_Interface_Initialize();
 		temp = ESP32_Turn_On();
 		if(temp == DATA_COMM_SUCCESS){
 			seq_state++;
@@ -1541,16 +1549,15 @@ uint8_t ESP32_Alarm_Screen_Display_Update(void){
 		if(temp == DATA_COMM_SUCCESS){
 			seq_state = 0;
 			result = SEQUENCE_COMPLETE;
+			ESP32_Comm_Interface_Disable();
 		}else if(temp == DATA_COMM_FAIL){
 			seq_state = 0;
 			result = SEQUENCE_COMPLETE;
+			ESP32_Comm_Interface_Disable();
 		}else{
 			//Does nothing
 		}
-		
-		//seq_state = 0;
-		//result = SEQUENCE_COMPLETE;
-		
+				
 		break;
 		
 	default:
@@ -1578,6 +1585,7 @@ uint8_t ESP32_Calibration_Screen_Display_Update(void){
 		break;
 		
 	case 1:
+		ESP32_Comm_Interface_Initialize();
 		temp = ESP32_Turn_On();
 		if(temp == DATA_COMM_SUCCESS){
 			seq_state++;
@@ -1638,15 +1646,15 @@ uint8_t ESP32_Calibration_Screen_Display_Update(void){
 		if(temp == DATA_COMM_SUCCESS){
 			seq_state = 0;
 			result = SEQUENCE_COMPLETE;
+			ESP32_Comm_Interface_Disable();
 		}else if(temp == DATA_COMM_FAIL){
 			seq_state = 0;
 			result = SEQUENCE_COMPLETE;
+			ESP32_Comm_Interface_Disable();
 		}else{
 			//Does nothing
 		}
 		
-		//seq_state = 0;
-		//result = SEQUENCE_COMPLETE;
 		break;
 		
 	default:
@@ -1714,6 +1722,7 @@ uint8_t Wifi_Connection_Sequence(void){
 		break;
 		
 	case 1:
+		ESP32_Comm_Interface_Initialize();
 		temp = ESP32_Turn_On();
 		if(temp == DATA_COMM_SUCCESS){
 			seq_state++;
@@ -2112,6 +2121,7 @@ uint8_t Wifi_Connection_Sequence(void){
 			seq_state = 0;
 			wifi_connected = 0;
 			result = SEQUENCE_COMPLETE;
+			ESP32_Comm_Interface_Disable();
 			G1_Get_Button_Press(1 << MODE_BUTTON);
 			G1_Get_Button_Long(1 << MODE_BUTTON);
 			G1_Get_Button_Press(1 << WIFI_BUTTON);
@@ -2120,19 +2130,13 @@ uint8_t Wifi_Connection_Sequence(void){
 			seq_state = 0;
 			wifi_connected = 0;
 			result = SEQUENCE_COMPLETE;
+			ESP32_Comm_Interface_Disable();
 			G1_Get_Button_Press(1 << MODE_BUTTON);
 			G1_Get_Button_Long(1 << MODE_BUTTON);
 			G1_Get_Button_Press(1 << WIFI_BUTTON);		
 		}else{
 			//Does nothing
 		}
-		
-		//seq_state = 0;
-		//wifi_connected = 0;
-		//result = SEQUENCE_COMPLETE;
-		//G1_Get_Button_Press(1 << MODE_BUTTON);
-		//G1_Get_Button_Long(1 << MODE_BUTTON);
-		//G1_Get_Button_Press(1 << WIFI_BUTTON);
 		
 		break;
 		
@@ -2142,4 +2146,19 @@ uint8_t Wifi_Connection_Sequence(void){
 	}
 
 	return result;
+}
+
+
+void Unused_Peripherals_Disable(void){
+	/* Disable TWI0 Clock */
+	PRR0 |= (1 << PRTWI0);	
+	/* Disable SPI0 Clock */
+	PRR0 |= (1 << PRSPI0);
+	/* Disable USART1 Clock */
+	PRR0 |= (1 << PRUSART1);	
+	/* Disable USART0 Clock */
+	PRR0 |= (1 << PRUSART0);
+	/* Analog comparator disable */
+	ACSR |= (1 << ACD);
+		
 }

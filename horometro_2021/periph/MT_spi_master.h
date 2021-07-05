@@ -19,21 +19,28 @@
 // Definición de pines
 
 #define DDR_MOSI0		DDRB
+#define PORT_MOSI0		PORTB
 #define MOSI0			3
 #define DDR_MISO0		DDRB
 #define MISO0			4
 #define DDR_SCK0		DDRB
+#define PORT_SCK0		PORTB
 #define SCK0			5
 #define DDR_SS0			DDRB
+#define PORT_SS0		PORTB
 #define SS0				2
 
 #define DDR_MOSI1		DDRE
+#define PORT_MOSI1		PORTE
 #define MOSI1			3
 #define DDR_MISO1		DDRC
+#define PORT_MISO1		PORTC
 #define MISO1			0
 #define DDR_SCK1		DDRC
+#define PORT_SCK1		PORTC
 #define SCK1			1
 #define DDR_SS1			DDRE
+#define PORT_SS1		PORTE
 #define SS1				2
 
 

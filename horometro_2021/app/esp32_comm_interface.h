@@ -115,6 +115,7 @@
 
 void SPI1_Initialize(void);
 void ESP32_Comm_Interface_Initialize(void);
+void ESP32_Comm_Interface_Disable(void);
 
 uint8_t ESP32_Turn_On(void);
 uint8_t ESP32_Turn_Off(void);

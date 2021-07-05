@@ -55,19 +55,48 @@ void SPI1_Initialize(void){
 }
 
 
+void ESP32_Comm_Interface_Disable(void){
+
+	/* Disable the SPI1 module clock */
+	PRR0 |= (1 << PRSPI1);
+
+	/* Configure as input and disable pull-up of the handshaking (mcu feedback) pin */
+	DDR_MCU_FEEDBACK_HANDSHAKE &= ~(1 << MCU_FEEDBACK_HANDSHAKE);
+	PORT_MCU_FEEDBACK_HANDSHAKE &= ~(1 << MCU_FEEDBACK_HANDSHAKE);
+	
+	/* Configure the MOSI pin as input and without pull-up resistor */
+	DDR_MOSI1 &= ~(1 << MOSI1);
+	PORT_MOSI1 &= ~(1 << MOSI1);
+	
+	/* Configure the SCK pin as input and without pull-up resistor */
+	DDR_SCK1 &= ~(1 << SCK1);
+	PORT_SCK1 &= ~(1 << SCK1);	
+	
+	/* Configure the chip select pin as input and without pull-up resistor */
+	DDR_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
+	PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
+	_delay_us(50);
+
+}
+
+
 void ESP32_Comm_Interface_Initialize(void){
 	
-	/* Configure as input and enable pull-up of the handshaking (mcu feedback) pin */
-	DDR_MCU_FEEDBACK_HANDSHAKE &= ~(1 << MCU_FEEDBACK_HANDSHAKE);
-	PORT_MCU_FEEDBACK_HANDSHAKE |= (1 << MCU_FEEDBACK_HANDSHAKE);
-	
-	/* Configure the chip select pin as output and initialize in HIGH */
-	DDR_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
-	PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);_delay_us(50);
+	/* Enable the SPI1 module clock */
+	PRR0 &= ~(1 << PRSPI1);
 	
 	/* Configure the SPI in Master mode */
 	SPI1_Initialize();
 	
+	/* Configure as input and enable pull-up of the handshaking (mcu feedback) pin */
+	DDR_MCU_FEEDBACK_HANDSHAKE &= ~(1 << MCU_FEEDBACK_HANDSHAKE);
+	PORT_MCU_FEEDBACK_HANDSHAKE |= (1 << MCU_FEEDBACK_HANDSHAKE);	
+	
+	/* Configure the chip select pin as output and initialize in HIGH */
+	DDR_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
+	PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
+	_delay_us(50);
+		
  }
 
 

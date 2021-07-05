@@ -51,6 +51,7 @@ void Vibration_Sense_Calibration_Sequence(void);
 void Vibration_Sense_Only_Sequence(void);
 void Vibration_Sense_Current_Sense_And_Motor_Speed_Sequence(void); 
 void Check_For_Alarm_Events(void);
+void Unused_Peripherals_Disable(void);
 
 uint8_t ESP32_Calibration_Screen_Display_Update(void);
 uint8_t ESP32_Main_Screen_Display_Update(void);

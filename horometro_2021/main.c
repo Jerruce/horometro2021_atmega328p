@@ -26,11 +26,15 @@ int main(void)
 	WDT_Off();
 	//UART_Initialize();
 	System_Initialize();
+
 	/* Enable the System Power-Save Mode */
 	//set_sleep_mode(SLEEP_MODE_PWR_SAVE);
 	//sleep_enable();
-	sei();
 
+	//sleep_cpu();	
+	
+	//sei();
+	
     /* Replace with your application code */
     while (1) 
     {	
@@ -41,17 +45,12 @@ int main(void)
 }
 
 
-
-
 /* Interrupt Service Routines (ISRs) */
-
 
 /* Timer0 Interrupts every 1ms */
 ISR(TIMER0_COMPA_vect){
-		
 	/* Measure the instant current value every 1ms */
 	system_flags |= ((uint32_t)1 << CURRENT_SENSE_FLAG);
-		
 }
 
 
