@@ -58,4 +58,7 @@ uint8_t ESP32_Main_Screen_Display_Update(void);
 uint8_t ESP32_Alarm_Screen_Display_Update(void);
 uint8_t Wifi_Connection_Sequence(void); 
 
+uint8_t Calib_Low_Consumption_Measurement_Sequence(uint8_t reset);
+uint8_t Vibration_Low_Consumption_Measurement_Sequence(uint8_t reset);
+
 #endif /* LOW_POWER_HOROMETER_H_ */

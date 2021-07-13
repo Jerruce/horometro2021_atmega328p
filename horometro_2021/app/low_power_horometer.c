@@ -47,7 +47,7 @@ void System_Initialize(void){
 	/* Initialize peripherals */
 	LEDs_Initialize();
 	Soft_RTC_Initialize();
-	ADC_Disable();	
+	ADC_Disable();
 	ESP32_Comm_Interface_Disable();
 	Timer0_Initialize();
 	Timer2_Initialize();
@@ -232,8 +232,6 @@ void System_Sequence(void){
 	switch(system_mode){
 		
 		case VIBRATION_SENSOR_ONLY_MODE:
-			ADC_Disable();
-			//sleep_cpu();
 			Vibration_Sense_Only_Sequence();
 			break;
 			
@@ -242,8 +240,6 @@ void System_Sequence(void){
 			break;
 			
 		case VIBRATION_SENSOR_CALIBRATION_MODE:
-			ADC_Disable();
-			//sleep_cpu();
 			Vibration_Sense_Calibration_Sequence();
 		break;			
 			
@@ -256,7 +252,7 @@ void System_Sequence(void){
 		//cli();
 		//system_flags &= ~((uint32_t)1 << SERIAL_MSG_FLAG);
 		//sei();
-		
+		//
 		//cli();
 		//Soft_RTC1_Get_Date(&dia, &mes, &anio);
 		//sei();
@@ -303,7 +299,7 @@ void System_Sequence(void){
 
 		//volt_batt = Battery_Voltage_Get();
 		//volt_batt_ent = (uint32_t)(volt_batt * 100);
-		//batt_level = Battery_Level_Get();
+		////batt_level = Battery_Level_Get();
 		//sprintf(texto, "Batt(mV): %d\r\n", volt_batt_ent);
 		//UARTn_Tx_String(UART0, texto);
 		//sprintf(texto, "Batt: %d\r\n", batt_level);
@@ -340,28 +336,15 @@ void Vibration_Sense_Calibration_Sequence(void){
 			cli();
 			system_flags &= ~((uint32_t)1 << VIBRATION_SENSE_FLAG);
 			sei();
-			
-			if(Piezoelectric_Sensor_Read()){
-				PORT_ACCEL_SENSING_LED |= (1 << ACCEL_SENSING_LED);
-				Calib_Time_Count_Update();	
+									
+			if((Calib_Low_Consumption_Measurement_Sequence(0) == 1) || (sequence_state == 3)){
+				General_Power_Supply_Circuit_On();
 			}else{
-				PORT_ACCEL_SENSING_LED &= ~(1 << ACCEL_SENSING_LED);
-			}	
+				General_Power_Supply_Circuit_Off();
+			}
 			
 		}		
-		
-		
-		/* Measure the battery charge level */
-		if(system_flags & ((uint32_t)1 << BATTERY_LEVEL_MEASURE_FLAG)){
-		
-			cli();
-			system_flags &= ~((uint32_t)1 << BATTERY_LEVEL_MEASURE_FLAG);
-			sei();
-		
-			ADC_Initialize();
-			Battery_Level_Measure();
-		}	
-		
+			
 		
 		/* Read DIP switch (ignore buttons) */
 		if(system_flags & ((uint32_t)1 << BUTTON_READ_FLAG)){
@@ -384,14 +367,7 @@ void Vibration_Sense_Calibration_Sequence(void){
 	switch(sequence_state){
 	
 	case 0:
-	
-		/* Enable the vibration sensor */
-		General_Power_Supply_Circuit_On();
-		Battery_Measure_Circuit_PSU_On();
-		Piezoelectric_Circuit_PSU_On();
-		/* Wait until the power supply sets up */
-		_delay_ms(PSU_SW_WAIT_PERIOD_MS);
-		
+
 		Current_Clear();
 		Magnetic_Pickup_Clear_Freq();
 	
@@ -421,6 +397,8 @@ void Vibration_Sense_Calibration_Sequence(void){
 		}else if(system_flags & ((uint32_t)1 << CHANGE_OPERATION_MODE_FLAG)){	
 			
 			sequence_state++;
+		}else{
+			// Does nothing
 		}
 		
 		break;
@@ -441,6 +419,11 @@ void Vibration_Sense_Calibration_Sequence(void){
 		sei();
 		sequence_state = 0;
 		measure_enable = 0;
+		/* Reset the measurement sequence */
+		Calib_Low_Consumption_Measurement_Sequence(1);
+		General_Power_Supply_Circuit_Off();
+		Piezoelectric_Circuit_PSU_Off();
+		Battery_Measure_Circuit_PSU_Off();
 		
 		break;
 
@@ -496,35 +479,14 @@ void Vibration_Sense_Only_Sequence(void){
 			cli();
 			system_flags &= ~((uint32_t)1 << VIBRATION_SENSE_FLAG);
 			sei();
-		
-			if(Piezoelectric_Sensor_Read()){
-				
-				Working_Time_Count_Update();
-				if(alarm_status_flags & (1 << E1_FLAG)){
-					Alarm1_Time_Count_Update();
-				}
-				if(alarm_status_flags & (1 << E2_FLAG)){
-					Alarm2_Time_Count_Update();
-				}
-				if(alarm_status_flags & (1 << E3_FLAG)){
-					Alarm3_Time_Count_Update();
-				}
-				
-			}		
-				
+	
+			if((Vibration_Low_Consumption_Measurement_Sequence(0) == 1) || (sequence_state == 4) || (sequence_state == 5) || (sequence_state == 6)){
+				General_Power_Supply_Circuit_On();
+			}else{
+				General_Power_Supply_Circuit_Off();
+			}
+	
 		}
-	
-	
-		/* Measure the battery charge level */
-		if(system_flags & ((uint32_t)1 << BATTERY_LEVEL_MEASURE_FLAG)){
-		
-			cli();
-			system_flags &= ~((uint32_t)1 << BATTERY_LEVEL_MEASURE_FLAG);
-			sei();
-		
-			ADC_Initialize();
-			Battery_Level_Measure();
-		}	
 	
 		Check_For_Alarm_Events();
 		if(alarm_event_flags){
@@ -575,14 +537,6 @@ void Vibration_Sense_Only_Sequence(void){
 	switch(sequence_state){
 		
 	case 0:
-	
-		/* Enable the vibration sensor */
-		General_Power_Supply_Circuit_On();
-		Battery_Measure_Circuit_PSU_On();
-		Piezoelectric_Circuit_PSU_On();
-		/* Wait until the power supply sets up and reset the calibration counter */
-		_delay_ms(PSU_SW_WAIT_PERIOD_MS);
-
 		Magnetic_Pickup_Clear_Freq();
 		Current_Clear();
 
@@ -636,6 +590,11 @@ void Vibration_Sense_Only_Sequence(void){
 		sei();		
 		sequence_state = 0;	
 		measure_enable = 0;
+		/* Reset the measurement sequence */
+		Vibration_Low_Consumption_Measurement_Sequence(1);
+		General_Power_Supply_Circuit_Off();
+		Piezoelectric_Circuit_PSU_Off();
+		Battery_Measure_Circuit_PSU_Off();
 	
 		break;	
 		
@@ -653,6 +612,11 @@ void Vibration_Sense_Only_Sequence(void){
 		sei();		
 		sequence_state = 0;
 		measure_enable = 0;
+		/* Reset the measurement sequence */
+		Vibration_Low_Consumption_Measurement_Sequence(1);
+		General_Power_Supply_Circuit_Off();
+		Piezoelectric_Circuit_PSU_Off();
+		Battery_Measure_Circuit_PSU_Off();		
 	
 		break;
 		
@@ -744,6 +708,8 @@ void Vibration_Sense_Current_Sense_And_Motor_Speed_Sequence(void){
 	uint16_t new_freq_rpm;
 	static uint8_t measure_enable = 0;
 	uint8_t temp = VIBRATION_CURRENT_PICKUP_SENSOR_MODE;
+	
+	static uint8_t vibration_counter = 0;
 
 	if(measure_enable){
 		
@@ -801,21 +767,29 @@ void Vibration_Sense_Current_Sense_And_Motor_Speed_Sequence(void){
 			system_flags &= ~((uint32_t)1 << VIBRATION_SENSE_FLAG);
 			sei();
 		
-			if(Piezoelectric_Sensor_Read()){
+		
+			vibration_counter++;
+			if(vibration_counter >= 16){
 				
-				Working_Time_Count_Update();
-				if(alarm_status_flags & (1 << E1_FLAG)){
-					Alarm1_Time_Count_Update();
-				}
-				if(alarm_status_flags & (1 << E2_FLAG)){
-					Alarm2_Time_Count_Update();
-				}
-				if(alarm_status_flags & (1 << E3_FLAG)){
-					Alarm3_Time_Count_Update();
-				}
+				vibration_counter = 0;
+				
+				if(Piezoelectric_Sensor_Read()){
+					
+					Working_Time_Count_Update();
+					if(alarm_status_flags & (1 << E1_FLAG)){
+						Alarm1_Time_Count_Update();
+					}
+					if(alarm_status_flags & (1 << E2_FLAG)){
+						Alarm2_Time_Count_Update();
+					}
+					if(alarm_status_flags & (1 << E3_FLAG)){
+						Alarm3_Time_Count_Update();
+					}
+					
+				}			
 				
 			}
-
+		
 		}
 		
 		/* Measure the battery charge level */
@@ -885,14 +859,17 @@ void Vibration_Sense_Current_Sense_And_Motor_Speed_Sequence(void){
 		/* Wait until the power supply sets up and reset the calibration counter */
 		_delay_ms(PSU_SW_WAIT_PERIOD_MS);
 	
+		ADC_Initialize();
+	
 		cli();
-		/* Clear the INT0 flag */
-		EIFR |= (1 << INTF0);
+		///* Clear the INT0 flag */
+		//EIFR |= (1 << INTF0);
 		/* Prepare for current measurement */
 		Timer0_Interrupt_Enable();
 		current_sense_sample_counter = 0;
 		/* Prepare to measure motor speed */
 		Magnetic_Pickup_Enable();
+		system_flags &= ~((uint32_t)1 << VIBRATION_DETECTED_FLAG);
 		system_flags |= ((uint32_t)1 << SHOW_MAIN_OR_ALARM_SCREEN_FLAG);
 		sei();	
 	
@@ -947,6 +924,7 @@ void Vibration_Sense_Current_Sense_And_Motor_Speed_Sequence(void){
 		sequence_state = 0;
 		measure_enable = 0;
 		current_sense_sample_counter = 0;
+		vibration_counter = 0;
 		
 		break;
 		
@@ -973,6 +951,7 @@ void Vibration_Sense_Current_Sense_And_Motor_Speed_Sequence(void){
 		sequence_state = 0;
 		measure_enable = 0;
 		current_sense_sample_counter = 0;
+		vibration_counter = 0;
 		
 		break;
 	
@@ -2162,3 +2141,209 @@ void Unused_Peripherals_Disable(void){
 	ACSR |= (1 << ACD);
 		
 }
+
+
+uint8_t Calib_Low_Consumption_Measurement_Sequence(uint8_t reset){
+
+		static uint8_t sequence_state = 0;
+		static uint32_t psu_counter = 0;
+		uint8_t energy_required = 0;
+		uint8_t battery_measure_local_flag = 0;
+		
+		
+		if(reset == 1){
+			
+			sequence_state = 0;
+			psu_counter = 0;
+			energy_required = 0;
+			
+		}else{
+			
+				switch(sequence_state){
+				
+				case 0:
+				
+					psu_counter++;
+					if(psu_counter >= 14){
+						psu_counter = 0;
+						sequence_state++;
+						
+						/* Enable battery measurement circuit if required */
+						if(system_flags & ((uint32_t)1 << BATTERY_LEVEL_MEASURE_FLAG)){
+							
+							cli();
+							system_flags &= ~((uint32_t)1 << BATTERY_LEVEL_MEASURE_FLAG);
+							sei();
+							Battery_Measure_Circuit_PSU_On();
+							battery_measure_local_flag = 1;
+						}						
+						/* Enable the vibration sensor circuit */
+						Piezoelectric_Circuit_PSU_On();						
+						energy_required = 1;
+					}else{
+						energy_required = 0;	
+					}
+					
+					break;
+					
+				case 1:
+				
+					psu_counter++;
+					if(psu_counter >= 1){
+						psu_counter = 0;
+						EIFR |= (1 << INTF0);
+						sequence_state++;	
+					}
+					
+					energy_required = 1;
+					
+					break;					
+				
+				case 2:
+					
+					/* Measure the battery level if required */
+					if(battery_measure_local_flag == 1){
+				
+						ADC_Initialize();
+						Battery_Level_Measure();
+						
+						battery_measure_local_flag = 0;					
+				
+					}
+					
+					if(Piezoelectric_Sensor_Read()){
+						PORT_ACCEL_SENSING_LED |= (1 << ACCEL_SENSING_LED);
+						Calib_Time_Count_Update();
+					}else{
+						PORT_ACCEL_SENSING_LED &= ~(1 << ACCEL_SENSING_LED);
+					}
+
+					/* Disable the vibration sensor and battery measurement */
+					ADC_Disable();
+					Battery_Measure_Circuit_PSU_Off();
+					Piezoelectric_Circuit_PSU_Off();
+					
+					energy_required = 0;
+					sequence_state = 0;
+					battery_measure_local_flag = 0;
+					
+					break;
+				
+				default:
+					break;
+				
+			}
+			
+		}	
+		
+	return energy_required;		
+
+}
+
+
+
+uint8_t Vibration_Low_Consumption_Measurement_Sequence(uint8_t reset){
+
+	static uint8_t sequence_state = 0;
+	static uint32_t psu_counter = 0;
+	static uint8_t battery_measure_local_flag = 0;
+	uint8_t energy_required = 0;
+	
+	
+	
+	if(reset == 1){
+		
+		sequence_state = 0;
+		psu_counter = 0;
+		energy_required = 0;
+		
+		}else{
+		
+		switch(sequence_state){
+			
+			case 0:
+			
+			psu_counter++;
+			if(psu_counter >= 14){
+				psu_counter = 0;
+				sequence_state++;
+				
+				/* Enable battery measurement circuit if required */
+				if(system_flags & ((uint32_t)1 << BATTERY_LEVEL_MEASURE_FLAG)){
+					cli();
+					system_flags &= ~((uint32_t)1 << BATTERY_LEVEL_MEASURE_FLAG);
+					sei();					
+					Battery_Measure_Circuit_PSU_On();
+					battery_measure_local_flag = 1;
+				}				
+				/* Enable piezoelectric circuit */
+				Piezoelectric_Circuit_PSU_On();
+				energy_required = 1;
+			}else{
+				energy_required = 0;
+			}
+			
+			break;
+			
+			case 1:
+			
+			psu_counter++;
+			if(psu_counter >= 1){
+				psu_counter = 0;
+				EIFR |= (1 << INTF0);
+				sequence_state++;
+			}
+			
+			energy_required = 1;
+			
+			break;
+			
+			case 2:
+			
+			/* Measure the battery level if required */
+			if(battery_measure_local_flag == 1){
+					
+				ADC_Initialize();
+				Battery_Level_Measure();
+				
+				battery_measure_local_flag = 0;				
+							
+			}			
+			
+			if(Piezoelectric_Sensor_Read()){
+				
+				Working_Time_Count_Update();
+				
+				if(alarm_status_flags & (1 << E1_FLAG)){
+					Alarm1_Time_Count_Update();
+				}
+				if(alarm_status_flags & (1 << E2_FLAG)){
+					Alarm2_Time_Count_Update();
+				}
+				if(alarm_status_flags & (1 << E3_FLAG)){
+					Alarm3_Time_Count_Update();
+				}
+			}
+
+			/* Disable the vibration sensor and battery measurement */
+			ADC_Disable();
+			Battery_Measure_Circuit_PSU_Off();
+			Piezoelectric_Circuit_PSU_Off();
+			
+			energy_required = 0;
+			sequence_state = 0;
+			battery_measure_local_flag = 0;
+			
+			break;
+			
+			default:
+			break;
+			
+		}
+		
+	}
+	
+	return energy_required;
+
+}
+

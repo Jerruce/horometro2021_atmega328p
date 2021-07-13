@@ -105,11 +105,12 @@
 
 // -------------- Defines for time periods ---------------------
 
-#define PSU_SW_WAIT_PERIOD_MS					50	// 50ms 
-#define HOROMETER_SECOND_N_STEPS				32	// 32 * 31.25ms = 1 sec
+#define PSU_SW_WAIT_PERIOD_MS					10	// 10ms 
+#define HOROMETER_SECOND_N_STEPS				2	// 2 * 500ms = 1 sec
 #define CALIBRATION_COUNT_DISPLAY_PERIOD_SEC	60  // 60 seconds
 #define BATTERY_MEASURE_PERIOD_SEC				1//9
-#define WORKING_COUNT_DISPLAY_PERIOD_SEC		3600 // 3600 seconds = 1 hour
+#define WORKING_COUNT_DISPLAY_PERIOD_HOURS		10 // REFRESH DISPLAY AUTOMATICALLY EVERY 10 HOURS OF WORK
+#define WORKING_COUNT_DISPLAY_PERIOD_SEC		(3600 * WORKING_COUNT_DISPLAY_PERIOD_HOURS)
 #define WEB_PARAMETERS_CHECK_PERIOD_SEC			2
 
 // ----------- Defines for current measurement -----------------
@@ -202,6 +203,7 @@
 #define TOGGLE_SCREEN_INDEX_FLAG		 17				  
 #define BATTERY_LEVEL_MEASURE_FLAG		 18
 #define ESP32_WEB_PARAMETERS_CHECK_FLAG	 19	
+#define VIBRATION_DETECTED_FLAG			 20 	
 		
 
 #define SERIAL_MSG_FLAG					 31

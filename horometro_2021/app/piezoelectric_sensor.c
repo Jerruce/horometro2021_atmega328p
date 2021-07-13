@@ -38,6 +38,8 @@ static uint32_t alarm3_time_hours = 0;
 static uint8_t alarm3_time_minutes = 0;
 static uint8_t alarm3_time_seconds = 0;
 
+static uint32_t screen_refresh_counter_sec = 0;
+
 
 /* Function definition */
 
@@ -50,7 +52,7 @@ void Piezoelectric_Sensor_Initialize(void){
 	/* Configure external interrupt INT0 to activate with every RISING EDGE */
 	EICRA |= (1 << ISC00);
 	EICRA |= (1 << ISC01);
-		
+		//
 	/* Clear the INT0 flag */
 	EIFR |= (1 << INTF0);	
 }
@@ -60,10 +62,8 @@ uint8_t Piezoelectric_Sensor_Read(void){
 	
 	uint8_t val;
 	
-	cli();
 	val = EIFR & (1 << INTF0);
 	EIFR |= (1 << INTF0);
-	sei();
 	
 	return val; 	
 }
@@ -94,6 +94,7 @@ void Working_Time_Count_Update(void){
 	
 	working_time_step_counter++;
 	if(working_time_step_counter >= HOROMETER_SECOND_N_STEPS){
+		
 		working_time_step_counter = 0;
 		working_time_seconds++;
 		if(working_time_seconds >= 60){
@@ -104,6 +105,15 @@ void Working_Time_Count_Update(void){
 				working_time_hours++;
 			}
 		}
+		
+		/* Refresh main screen periodically (every 12 hours of work, for example) */
+		screen_refresh_counter_sec++;
+		if(screen_refresh_counter_sec  >= WORKING_COUNT_DISPLAY_PERIOD_SEC){
+		screen_refresh_counter_sec  = 0;
+		system_flags &= ~((uint32_t)1 << TOGGLE_SCREEN_INDEX_FLAG);
+		system_flags |= ((uint32_t)1 << SHOW_MAIN_OR_ALARM_SCREEN_FLAG);
+		}		
+		
 	}
 }
 
@@ -124,10 +134,13 @@ void Working_Time_Get(uint32_t *hh, uint8_t *mm, uint8_t *ss){
 
 
 void Working_Time_Reset(void){
+	
 	working_time_step_counter = 0;
 	working_time_hours = 0;
 	working_time_minutes = 0;
-	working_time_seconds = 0;	
+	working_time_seconds = 0;
+	
+	screen_refresh_counter_sec = 0;	
 }
 
 

@@ -26,18 +26,12 @@ int main(void)
 	WDT_Off();
 	//UART_Initialize();
 	System_Initialize();
-
-	/* Enable the System Power-Save Mode */
-	//set_sleep_mode(SLEEP_MODE_PWR_SAVE);
-	//sleep_enable();
-
-	//sleep_cpu();	
 	
-	//sei();
+	sei();
 	
     /* Replace with your application code */
     while (1) 
-    {	
+    {		
 		System_Sequence();
     }
 	
@@ -73,7 +67,6 @@ ISR(TIMER2_COMPA_vect){
 	static uint8_t counter_1_div_32_sec = 0;
 	static uint16_t battery_level_measure_count_sec = 0;
 	static uint8_t calibration_count_sec = 0;
-	static uint16_t working_count_sec = 0;
 	static uint8_t web_command_count_sec = 0;
 	
 	/* Check the SPI communication every 1/32 sec (31.25 ms) */
@@ -101,7 +94,7 @@ ISR(TIMER2_COMPA_vect){
 			system_flags |= ((uint32_t)1 << ESP32_WEB_PARAMETERS_CHECK_FLAG);
 		}
 		
-		/* Measure battery level every 15 minutes */
+		/* Measure battery level every 1 second */
 		battery_level_measure_count_sec++;
 		if(battery_level_measure_count_sec >= BATTERY_MEASURE_PERIOD_SEC){
 			battery_level_measure_count_sec = 0;
@@ -114,20 +107,7 @@ ISR(TIMER2_COMPA_vect){
 			calibration_count_sec = 0;
 			system_flags |= ((uint32_t)1 << SHOW_CALIBRATION_SCREEN_FLAG);
 		}
-		
-		/* Refresh main screen every 1 hour (under normal conditions) */
-		working_count_sec++;
-		if(working_count_sec >= WORKING_COUNT_DISPLAY_PERIOD_SEC){
-			working_count_sec = 0;
-			system_flags &= ~((uint32_t)1 << TOGGLE_SCREEN_INDEX_FLAG);	
-			system_flags |= ((uint32_t)1 << SHOW_MAIN_OR_ALARM_SCREEN_FLAG);
-		}
-			
-		//counter_1s++;
-		//if(counter_1s >= 5){
-			//counter_1s = 0;
-			//system_flags |= ((uint32_t)1 << SERIAL_MSG_FLAG);
-		//}
+					
 	}	
 }
 

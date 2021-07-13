@@ -57,8 +57,9 @@ void SPI1_Initialize(void){
 
 void ESP32_Comm_Interface_Disable(void){
 
-	/* Disable the SPI1 module clock */
+	/* Disable the SPI1 module */
 	PRR0 |= (1 << PRSPI1);
+	SPCR1 &= ~(1 << SPE);
 
 	/* Configure as input and disable pull-up of the handshaking (mcu feedback) pin */
 	DDR_MCU_FEEDBACK_HANDSHAKE &= ~(1 << MCU_FEEDBACK_HANDSHAKE);
@@ -75,6 +76,7 @@ void ESP32_Comm_Interface_Disable(void){
 	/* Configure the chip select pin as input and without pull-up resistor */
 	DDR_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
 	PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
+	
 	_delay_us(50);
 
 }
