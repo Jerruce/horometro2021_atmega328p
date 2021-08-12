@@ -50,4 +50,7 @@ void Alarm3_Time_Reset(void);
 void Alarm3_Setpoint_Set(uint32_t sp);
 uint32_t Alarm3_Setpoint_Get(void);
 
+void Screen_Refresh_Period_Set(uint8_t period_index);
+uint8_t Screen_Refresh_Period_Get(void);
+
 #endif /* MT_PIEZOELECTRIC_SENSOR_H_ */

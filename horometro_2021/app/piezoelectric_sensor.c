@@ -38,7 +38,13 @@ static uint32_t alarm3_time_hours = 0;
 static uint8_t alarm3_time_minutes = 0;
 static uint8_t alarm3_time_seconds = 0;
 
-static uint32_t screen_refresh_counter_sec = 0;
+static uint8_t screen_refresh_counter_hours = 0;
+static uint8_t screen_refresh_period_index = 0;
+static uint8_t screen_refresh_period_hours[DISPLAY_PERIOD_N_OPTIONS] =  {
+																				WORKING_COUNT_DISPLAY_PERIOD_01_IN_HOURS,
+																				WORKING_COUNT_DISPLAY_PERIOD_02_IN_HOURS,
+																				WORKING_COUNT_DISPLAY_PERIOD_03_IN_HOURS
+																			};
 
 
 /* Function definition */
@@ -103,17 +109,17 @@ void Working_Time_Count_Update(void){
 			if(working_time_minutes >= 60){
 				working_time_minutes = 0;
 				working_time_hours++;
+				
+				/* Refresh main screen periodically (every 12 hours of work, for example) */
+				screen_refresh_counter_hours++;
+				if(screen_refresh_counter_hours  >= screen_refresh_period_hours[screen_refresh_period_index]){
+					screen_refresh_counter_hours  = 0;
+					system_flags &= ~((uint32_t)1 << TOGGLE_SCREEN_INDEX_FLAG);
+					system_flags |= ((uint32_t)1 << SHOW_MAIN_OR_ALARM_SCREEN_FLAG);
+				}
+				
 			}
 		}
-		
-		/* Refresh main screen periodically (every 12 hours of work, for example) */
-		screen_refresh_counter_sec++;
-		if(screen_refresh_counter_sec  >= WORKING_COUNT_DISPLAY_PERIOD_SEC){
-		screen_refresh_counter_sec  = 0;
-		system_flags &= ~((uint32_t)1 << TOGGLE_SCREEN_INDEX_FLAG);
-		system_flags |= ((uint32_t)1 << SHOW_MAIN_OR_ALARM_SCREEN_FLAG);
-		}		
-		
 	}
 }
 
@@ -140,7 +146,7 @@ void Working_Time_Reset(void){
 	working_time_minutes = 0;
 	working_time_seconds = 0;
 	
-	screen_refresh_counter_sec = 0;	
+	screen_refresh_counter_hours = 0;	
 }
 
 
@@ -317,4 +323,19 @@ void Alarm3_Setpoint_Set(uint32_t sp){
 
 uint32_t Alarm3_Setpoint_Get(void){
 	return alarm3_setpoint_hours;
+}
+
+
+void Screen_Refresh_Period_Set(uint8_t period_index){
+	
+	if(period_index > (DISPLAY_PERIOD_N_OPTIONS - 1)){
+		screen_refresh_period_index = DISPLAY_PERIOD_N_OPTIONS - 1;
+	}else{
+		screen_refresh_period_index = period_index;	
+	}
+}
+
+
+uint8_t Screen_Refresh_Period_Get(void){
+	return screen_refresh_period_index;
 }

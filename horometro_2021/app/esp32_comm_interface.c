@@ -31,6 +31,7 @@ static uint8_t esp32_buffer_battery_level = 0;
 static uint32_t esp32_buffer_calibration_counter = 0;
 
 static uint16_t esp32_buffer_param_status = 0;
+static uint8_t esp32_buffer_screen_refresh_period_index = 0;
 
 // Buffers for SPI bus
 static uint8_t spi_tx_buffer[SPI_TX_BUFF_SIZE];
@@ -1638,7 +1639,8 @@ uint8_t ESP32_Battery_Level_Status_Write(void){
 	
 		PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
 		SPI1_Master_Tx_Bitstream(BATTERY_LEVEL_WRITE_FRAME_SIZE, spi_tx_buffer, spi_rx_buffer);
-		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);_delay_us(50);
+		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
+		_delay_us(50);
 		seq_state = 0;
 		result = DATA_COMM_SUCCESS;
 		
@@ -1696,7 +1698,8 @@ uint8_t ESP32_Calibration_Counter_Write(void){
 		
 		PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
 		SPI1_Master_Tx_Bitstream(4, spi_tx_buffer, spi_rx_buffer);
-		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);_delay_us(50);
+		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
+		_delay_us(50);
 		seq_state++;
 		
 		break;
@@ -1724,7 +1727,8 @@ uint8_t ESP32_Calibration_Counter_Write(void){
 		
 		PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
 		SPI1_Master_Tx_Bitstream(CALIBRATION_COUNTER_WRITE_FRAME_SIZE, spi_tx_buffer, spi_rx_buffer);
-		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);_delay_us(50);
+		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
+		_delay_us(50);
 		seq_state = 0;
 		result = DATA_COMM_SUCCESS;
 		break;
@@ -1743,6 +1747,96 @@ uint8_t ESP32_Calibration_Counter_Write(void){
 	return result;
 	
 }
+
+
+uint8_t ESP32_Screen_Refresh_Period_Write(void){
+
+	uint8_t result = DATA_COMM_IN_PROGESS;
+	static uint8_t seq_state = 0;
+	uint8_t byte_count;
+	
+	switch(seq_state){
+		
+		case 0:
+		
+		esp32_timeout_counter = 0;
+		seq_state++;
+		break;
+
+		case 1:
+		
+		if(PIN_MCU_FEEDBACK_HANDSHAKE & (1 << MCU_FEEDBACK_HANDSHAKE)){
+			esp32_timeout_counter++;
+			if(esp32_timeout_counter >= ESP32_COMM_TIMEOUT_VALUE){
+				esp32_timeout_counter = 0;
+				seq_state = 5;
+			}
+		}else{
+			esp32_timeout_counter = 0;
+			seq_state++;
+		}
+		break;
+		
+		case 2:
+		
+		spi_tx_buffer[0] = ESP32_UPDATE_PERIOD_WRITE_CMD;
+		spi_tx_buffer[1] = 0;
+		spi_tx_buffer[2] = 0;
+		spi_tx_buffer[3] = 0;
+		
+		PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
+		SPI1_Master_Tx_Bitstream(4, spi_tx_buffer, spi_rx_buffer);
+		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
+		_delay_us(50);
+		seq_state++;
+		
+		break;
+		
+		case 3:
+		
+		if(PIN_MCU_FEEDBACK_HANDSHAKE & (1 << MCU_FEEDBACK_HANDSHAKE)){
+			esp32_timeout_counter++;
+			if(esp32_timeout_counter >= ESP32_COMM_TIMEOUT_VALUE){
+				esp32_timeout_counter = 0;
+				seq_state = 5;
+			}
+		}else{
+			esp32_timeout_counter = 0;
+			seq_state++;
+		}
+		break;
+
+		case 4:
+		
+		for(byte_count = 0; byte_count < UPDATE_PERIOD_WRITE_FRAME_SIZE; byte_count++){
+			spi_tx_buffer[byte_count] = 0;
+		}
+		spi_tx_buffer[0] = esp32_buffer_screen_refresh_period_index;
+		
+		PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
+		SPI1_Master_Tx_Bitstream(UPDATE_PERIOD_WRITE_FRAME_SIZE, spi_tx_buffer, spi_rx_buffer);
+		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
+		_delay_us(50);
+		seq_state = 0;
+		result = DATA_COMM_SUCCESS;
+		
+		break;
+
+		case 5:
+		
+		seq_state = 0;
+		result = DATA_COMM_FAIL;
+		break;
+		
+		default:
+		break;
+		
+	}
+	
+	return result;
+}
+
+
 
 
 uint8_t ESP32_Parameters_Status_Read(void){
@@ -2288,6 +2382,100 @@ uint8_t ESP32_Alarm3_Setpoint_Read(void){
 }
 
 
+
+uint8_t ESP32_Screen_Refresh_Period_Read(void){
+
+	uint8_t result = DATA_COMM_IN_PROGESS;
+	static uint8_t seq_state = 0;
+	uint8_t byte_count;
+	
+	switch(seq_state){
+		
+		case 0:
+		
+		esp32_timeout_counter = 0;
+		seq_state++;
+		break;
+
+		case 1:
+		
+		if(PIN_MCU_FEEDBACK_HANDSHAKE & (1 << MCU_FEEDBACK_HANDSHAKE)){
+			esp32_timeout_counter++;
+			if(esp32_timeout_counter >= ESP32_COMM_TIMEOUT_VALUE){
+				esp32_timeout_counter = 0;
+				seq_state = 5;
+			}
+		}else{
+			esp32_timeout_counter = 0;
+			seq_state++;
+		}
+		break;
+		
+		case 2:
+		
+		spi_tx_buffer[0] = ESP32_UPDATE_PERIOD_READ_CMD;
+		spi_tx_buffer[1] = 0;
+		spi_tx_buffer[2] = 0;
+		spi_tx_buffer[3] = 0;
+		
+		PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
+		SPI1_Master_Tx_Bitstream(4, spi_tx_buffer, spi_rx_buffer);
+		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
+		_delay_us(50);
+		seq_state++;
+		
+		break;
+		
+		case 3:
+		
+		if(PIN_MCU_FEEDBACK_HANDSHAKE & (1 << MCU_FEEDBACK_HANDSHAKE)){
+			esp32_timeout_counter++;
+			if(esp32_timeout_counter >= ESP32_COMM_TIMEOUT_VALUE){
+				esp32_timeout_counter = 0;
+				seq_state = 5;
+			}
+			}else{
+			esp32_timeout_counter = 0;
+			seq_state++;
+		}
+		break;
+
+		case 4:
+		
+		for(byte_count = 0; byte_count < UPDATE_PERIOD_READ_FRAME_SIZE; byte_count++){
+			spi_tx_buffer[byte_count] = 0xFF;
+		}
+		
+		PORT_MCU_TO_MCU_CS &= ~(1 << MCU_TO_MCU_CS);
+		SPI1_Master_Tx_Bitstream(UPDATE_PERIOD_READ_FRAME_SIZE, spi_tx_buffer, spi_rx_buffer);
+		PORT_MCU_TO_MCU_CS |= (1 << MCU_TO_MCU_CS);
+		_delay_us(50);
+		
+		esp32_buffer_screen_refresh_period_index = spi_rx_buffer[0];
+		
+		seq_state = 0;
+		result = DATA_COMM_SUCCESS;
+		break;
+
+		case 5:
+		
+		seq_state = 0;
+		result = DATA_COMM_FAIL;
+		break;
+		
+		default:
+		break;
+		
+	}
+	
+	return result;
+	
+}
+
+
+
+
+
 void ESP32_Buffer_Operation_Mode_Set(uint8_t new_mode){
 	esp32_buffer_operation_mode = new_mode;
 }
@@ -2400,4 +2588,23 @@ uint32_t ESP32_Buffer_Alarm2_Setpoint_Get(void){
 
 uint32_t ESP32_Buffer_Alarm3_Setpoint_Get(void){
 	return esp32_buffer_alarm3_setpoint;
+}
+
+
+
+
+
+uint8_t ESP32_Buffer_Screen_Refresh_Period_Get(void){
+	return esp32_buffer_screen_refresh_period_index;
+}
+
+
+void ESP32_Buffer_Screen_Refresh_Period_Set(uint8_t new_period_index){
+	
+	if(new_period_index > (DISPLAY_PERIOD_N_OPTIONS - 1)){
+		esp32_buffer_screen_refresh_period_index = DISPLAY_PERIOD_N_OPTIONS - 1;
+	}else{
+		esp32_buffer_screen_refresh_period_index = new_period_index;
+	}
+
 }

@@ -40,6 +40,7 @@
 #define ESP32_MOTOR_CURRENT_STATUS_WRITE_CMD		0x12
 #define ESP32_BATTERY_LEVEL_STATUS_WRITE_CMD		0x13
 #define ESP32_CALIBRATION_COUNTER_WRITE_CMD			0x14
+#define ESP32_UPDATE_PERIOD_WRITE_CMD				0x15
 
 
 // Size in bytes of the frames TRANSMITTED to the ESP32
@@ -56,7 +57,8 @@
 #define MOTOR_SPEED_STATUS_WRITE_FRAME_SIZE		4//2
 #define CURRENT_STATUS_WRITE_FRAME_SIZE			4
 #define BATTERY_LEVEL_WRITE_FRAME_SIZE			4//1
-#define CALIBRATION_COUNTER_WRITE_FRAME_SIZE	4		
+#define CALIBRATION_COUNTER_WRITE_FRAME_SIZE	4
+#define UPDATE_PERIOD_WRITE_FRAME_SIZE			4		
 
 // Commands for RECEIVING information from the ESP32
 #define ESP32_PARAM_STATUS_READ_CMD				0x21
@@ -65,6 +67,7 @@
 #define ESP32_ALARM1_SETPOINT_READ_CMD			0x24
 #define ESP32_ALARM2_SETPOINT_READ_CMD			0x25
 #define ESP32_ALARM3_SETPOINT_READ_CMD			0x26
+#define ESP32_UPDATE_PERIOD_READ_CMD			0x27
 
 // Size in bytes of the frames RECEIVED from the ESP32
 #define PARAM_STATUS_READ_FRAME_SIZE			4//2
@@ -73,6 +76,7 @@
 #define ALARM1_SETPOINT_READ_FRAME_SIZE			4
 #define ALARM2_SETPOINT_READ_FRAME_SIZE			4
 #define ALARM3_SETPOINT_READ_FRAME_SIZE			4
+#define UPDATE_PERIOD_READ_FRAME_SIZE			4	
 
 // Parameter status flags
 #define PARAM_STATUS_MODE_BIT					0
@@ -88,6 +92,7 @@
 #define PARAM_STATUS_AL3_RST_BIT				10
 #define PARAM_STATUS_MOT_RST_BIT				11
 #define PARAM_WIFI_OFF_BIT						12
+#define PARAM_STATUS_UPDT_BIT					13
 
 // Alarm event flags
 #define PROG_ALARM1_EVENT_FLAG						0
@@ -138,6 +143,7 @@ uint8_t ESP32_Motor_Speed_Status_Write(void);
 uint8_t ESP32_Motor_Current_Status_Write(void);
 uint8_t ESP32_Battery_Level_Status_Write(void);
 uint8_t ESP32_Calibration_Counter_Write(void);
+uint8_t ESP32_Screen_Refresh_Period_Write(void);
 
 uint8_t ESP32_Parameters_Status_Read(void);
 uint8_t ESP32_Operation_Mode_Read(void);
@@ -145,6 +151,7 @@ uint8_t ESP32_Date_And_Time_Read(void);
 uint8_t ESP32_Alarm1_Setpoint_Read(void);
 uint8_t ESP32_Alarm2_Setpoint_Read(void);
 uint8_t ESP32_Alarm3_Setpoint_Read(void);
+uint8_t ESP32_Screen_Refresh_Period_Read(void);
 
 void ESP32_Buffer_Operation_Mode_Set(uint8_t new_mode);
 void ESP32_Buffer_Date_And_Time_Set(uint8_t *new_date, uint8_t *new_time);
@@ -161,6 +168,7 @@ void ESP32_Buffer_Motor_Speed_Set(uint32_t new_speed);
 void ESP32_Buffer_Motor_Current_Set(uint32_t new_current);
 void ESP32_Buffer_Battery_Level_Set(uint32_t new_level);
 void ESP32_Buffer_Calibration_Counter_Set(uint32_t new_counter);
+void ESP32_Buffer_Screen_Refresh_Period_Set(uint8_t period_index);
 
 uint16_t ESP32_Buffer_Parameters_Status_Get(void);
 uint8_t ESP32_Buffer_Operation_Mode_Get(void);
@@ -168,6 +176,6 @@ void ESP32_Buffer_Date_And_Time_Get(uint8_t *new_date, uint8_t *new_time);
 uint32_t ESP32_Buffer_Alarm1_Setpoint_Get(void);
 uint32_t ESP32_Buffer_Alarm2_Setpoint_Get(void);
 uint32_t ESP32_Buffer_Alarm3_Setpoint_Get(void);
-
+uint8_t ESP32_Buffer_Screen_Refresh_Period_Get(void);
 
 #endif /* ESP32_SPI_INTERFACE_H_ */

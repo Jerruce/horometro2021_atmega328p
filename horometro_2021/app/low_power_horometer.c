@@ -1126,6 +1126,9 @@ uint8_t ESP32_Main_Screen_Display_Update(void){
 		/* General motor counter */
 		Working_Time_Get(&new_hh, &new_mm, &new_ss);
 		ESP32_Buffer_Motor_Counter_Set(new_hh);
+		/* Screen refresh period index */
+		ESP32_Buffer_Screen_Refresh_Period_Set(Screen_Refresh_Period_Get());
+		
 		/* Date and time */
 		cli();
 		Soft_RTC1_Get_Date(new_date, new_date + 1, new_date + 2);
@@ -1156,7 +1159,7 @@ uint8_t ESP32_Main_Screen_Display_Update(void){
 		if(temp == DATA_COMM_SUCCESS){
 			seq_state++;
 		}else if(temp == DATA_COMM_FAIL){
-			seq_state = 14;
+			seq_state = 15;
 		}else{
 			//Does nothing
 		}
@@ -1169,7 +1172,7 @@ uint8_t ESP32_Main_Screen_Display_Update(void){
 		if(temp == DATA_COMM_SUCCESS){
 			seq_state++;
 		}else if(temp == DATA_COMM_FAIL){
-			seq_state = 14;
+			seq_state = 15;
 		}else{
 			//Does nothing
 		}
@@ -1181,7 +1184,7 @@ uint8_t ESP32_Main_Screen_Display_Update(void){
 		if(temp == DATA_COMM_SUCCESS){
 			seq_state++;
 		}else if(temp == DATA_COMM_FAIL){
-			seq_state = 14;
+			seq_state = 15;
 		}else{
 			//Does nothing
 		}
@@ -1193,7 +1196,7 @@ uint8_t ESP32_Main_Screen_Display_Update(void){
 		if(temp == DATA_COMM_SUCCESS){
 			seq_state++;
 		}else if(temp == DATA_COMM_FAIL){
-			seq_state = 14;
+			seq_state = 15;
 		}else{
 			//Does nothing
 		}
@@ -1205,7 +1208,7 @@ uint8_t ESP32_Main_Screen_Display_Update(void){
 		if(temp == DATA_COMM_SUCCESS){
 			seq_state++;
 		}else if(temp == DATA_COMM_FAIL){
-			seq_state = 14;
+			seq_state = 15;
 		}else{
 			//Does nothing
 		}
@@ -1217,7 +1220,7 @@ uint8_t ESP32_Main_Screen_Display_Update(void){
 		if(temp == DATA_COMM_SUCCESS){
 			seq_state++;
 			}else if(temp == DATA_COMM_FAIL){
-			seq_state = 14;
+			seq_state = 15;
 			}else{
 			//Does nothing
 		}
@@ -1229,7 +1232,7 @@ uint8_t ESP32_Main_Screen_Display_Update(void){
 		if(temp == DATA_COMM_SUCCESS){
 			seq_state++;
 		}else if(temp == DATA_COMM_FAIL){
-			seq_state = 14;
+			seq_state = 15;
 		}else{
 			//Does nothing
 		}
@@ -1241,7 +1244,7 @@ uint8_t ESP32_Main_Screen_Display_Update(void){
 		if(temp == DATA_COMM_SUCCESS){
 			seq_state++;
 		}else if(temp == DATA_COMM_FAIL){
-			seq_state = 14;
+			seq_state = 15;
 		}else{
 			//Does nothing
 		}
@@ -1253,7 +1256,7 @@ uint8_t ESP32_Main_Screen_Display_Update(void){
 		if(temp == DATA_COMM_SUCCESS){
 			seq_state++;
 		}else if(temp == DATA_COMM_FAIL){
-			seq_state = 14;
+			seq_state = 15;
 		}else{
 			//Does nothing
 		}
@@ -1266,7 +1269,7 @@ uint8_t ESP32_Main_Screen_Display_Update(void){
 			alarm_event_flags = 0;
 			seq_state++;
 		}else if(temp == DATA_COMM_FAIL){
-			seq_state = 14;
+			seq_state = 15;
 		}else{
 			//Does nothing
 		}
@@ -1278,13 +1281,25 @@ uint8_t ESP32_Main_Screen_Display_Update(void){
 		if(temp == DATA_COMM_SUCCESS){
 			seq_state++;
 		}else if(temp == DATA_COMM_FAIL){
-			seq_state = 14;
+			seq_state = 15;
 		}else{
 			//Does nothing
 		}
-		break;		
-	
+		break;
+		
 	case 13:
+	
+		temp = ESP32_Screen_Refresh_Period_Write();
+		if(temp == DATA_COMM_SUCCESS){
+			seq_state++;
+		}else if(temp == DATA_COMM_FAIL){
+			seq_state = 15;
+		}else{
+			//Does nothing
+		}
+		break;				
+	
+	case 14:
 		temp = ESP32_Epaper_Screen01_Update();
 		if(temp == DATA_COMM_SUCCESS){
 			seq_state++;
@@ -1295,7 +1310,7 @@ uint8_t ESP32_Main_Screen_Display_Update(void){
 		}
 		break;
 		
-	case 14:
+	case 15:
 		
 		temp = ESP32_Turn_Off();
 		if(temp == DATA_COMM_SUCCESS){
@@ -1352,6 +1367,8 @@ uint8_t ESP32_Alarm_Screen_Display_Update(void){
 		/* General motor counter */
 		Working_Time_Get(&new_hh, &new_mm, &new_ss);
 		ESP32_Buffer_Motor_Counter_Set(new_hh);
+		/* Screen refresh period index */
+		ESP32_Buffer_Screen_Refresh_Period_Set(Screen_Refresh_Period_Get());		
 		/* Date and time */
 		cli();
 		Soft_RTC1_Get_Date(new_date, new_date + 1, new_date + 2);
@@ -1382,7 +1399,7 @@ uint8_t ESP32_Alarm_Screen_Display_Update(void){
 		if(temp == DATA_COMM_SUCCESS){
 			seq_state++;
 		}else if(temp == DATA_COMM_FAIL){
-			seq_state = 14;
+			seq_state = 15;
 		}else{
 			//Does nothing
 		}
@@ -1395,7 +1412,7 @@ uint8_t ESP32_Alarm_Screen_Display_Update(void){
 		if(temp == DATA_COMM_SUCCESS){
 			seq_state++;
 			}else if(temp == DATA_COMM_FAIL){
-			seq_state = 14;
+			seq_state = 15;
 			}else{
 			//Does nothing
 		}
@@ -1407,7 +1424,7 @@ uint8_t ESP32_Alarm_Screen_Display_Update(void){
 		if(temp == DATA_COMM_SUCCESS){
 			seq_state++;
 			}else if(temp == DATA_COMM_FAIL){
-			seq_state = 14;
+			seq_state = 15;
 			}else{
 			//Does nothing
 		}
@@ -1419,7 +1436,7 @@ uint8_t ESP32_Alarm_Screen_Display_Update(void){
 		if(temp == DATA_COMM_SUCCESS){
 			seq_state++;
 		}else if(temp == DATA_COMM_FAIL){
-			seq_state = 14;
+			seq_state = 15;
 		}else{
 			//Does nothing
 		}
@@ -1431,7 +1448,7 @@ uint8_t ESP32_Alarm_Screen_Display_Update(void){
 		if(temp == DATA_COMM_SUCCESS){
 			seq_state++;
 			}else if(temp == DATA_COMM_FAIL){
-			seq_state = 14;
+			seq_state = 15;
 			}else{
 			//Does nothing
 		}
@@ -1443,7 +1460,7 @@ uint8_t ESP32_Alarm_Screen_Display_Update(void){
 		if(temp == DATA_COMM_SUCCESS){
 			seq_state++;
 		}else if(temp == DATA_COMM_FAIL){
-			seq_state = 14;
+			seq_state = 15;
 		}else{
 			//Does nothing
 		}
@@ -1455,7 +1472,7 @@ uint8_t ESP32_Alarm_Screen_Display_Update(void){
 		if(temp == DATA_COMM_SUCCESS){
 			seq_state++;
 		}else if(temp == DATA_COMM_FAIL){
-			seq_state = 14;
+			seq_state = 15;
 		}else{
 			//Does nothing
 		}
@@ -1467,7 +1484,7 @@ uint8_t ESP32_Alarm_Screen_Display_Update(void){
 		if(temp == DATA_COMM_SUCCESS){
 			seq_state++;
 		}else if(temp == DATA_COMM_FAIL){
-			seq_state = 14;
+			seq_state = 15;
 		}else{
 			//Does nothing
 		}
@@ -1479,7 +1496,7 @@ uint8_t ESP32_Alarm_Screen_Display_Update(void){
 		if(temp == DATA_COMM_SUCCESS){
 			seq_state++;
 		}else if(temp == DATA_COMM_FAIL){
-			seq_state = 14;
+			seq_state = 15;
 		}else{
 			//Does nothing
 		}
@@ -1492,7 +1509,7 @@ uint8_t ESP32_Alarm_Screen_Display_Update(void){
 			alarm_event_flags = 0;
 			seq_state++;
 		}else if(temp == DATA_COMM_FAIL){
-			seq_state = 14;
+			seq_state = 15;
 		}else{
 			//Does nothing
 		}
@@ -1504,13 +1521,25 @@ uint8_t ESP32_Alarm_Screen_Display_Update(void){
 		if(temp == DATA_COMM_SUCCESS){
 			seq_state++;
 		}else if(temp == DATA_COMM_FAIL){
-			seq_state = 14;
+			seq_state = 15;
 		}else{
 			//Does nothing
 		}
 		break;
 		
 	case 13:
+	
+		temp = ESP32_Screen_Refresh_Period_Write();
+		if(temp == DATA_COMM_SUCCESS){
+			seq_state++;
+		}else if(temp == DATA_COMM_FAIL){
+			seq_state = 15;
+		}else{
+			//Does nothing
+		}
+		break;		
+		
+	case 14:
 	
 		temp = ESP32_Epaper_Screen02_Update();
 		if(temp == DATA_COMM_SUCCESS){
@@ -1522,7 +1551,7 @@ uint8_t ESP32_Alarm_Screen_Display_Update(void){
 		}
 		break;
 		
-	case 14:
+	case 15:
 		
 		temp = ESP32_Turn_Off();
 		if(temp == DATA_COMM_SUCCESS){
@@ -1693,7 +1722,9 @@ uint8_t Wifi_Connection_Sequence(void){
 			ESP32_Buffer_Alarm3_Counter_Set(new_hh);
 			/* General motor counter */
 			Working_Time_Get(&new_hh, &new_mm, &new_ss);
-			ESP32_Buffer_Motor_Counter_Set(new_hh);			
+			ESP32_Buffer_Motor_Counter_Set(new_hh);
+			/* Screen refresh period index */
+			ESP32_Buffer_Screen_Refresh_Period_Set(Screen_Refresh_Period_Get());						
 		}
 	
 		seq_state++;
@@ -1716,13 +1747,13 @@ uint8_t Wifi_Connection_Sequence(void){
 			alarm_event_flags = 0;
 			
 			if(wifi_connected){
-				seq_state = 14;
+				seq_state = 15;
 			}else{
 				seq_state++;		
 			}
 		
 		}else if(temp == DATA_COMM_FAIL){
-			seq_state = 24;
+			seq_state = 26;
 		}else{
 			//Does nothing
 		}
@@ -1734,7 +1765,7 @@ uint8_t Wifi_Connection_Sequence(void){
 		if(temp == DATA_COMM_SUCCESS){
 			seq_state++;
 		}else if(temp == DATA_COMM_FAIL){
-			seq_state = 24;
+			seq_state = 26;
 		}else{
 			//Does nothing
 		}
@@ -1747,7 +1778,7 @@ uint8_t Wifi_Connection_Sequence(void){
 		if(temp == DATA_COMM_SUCCESS){
 			seq_state++;
 		}else if(temp == DATA_COMM_FAIL){
-			seq_state = 24;
+			seq_state = 26;
 		}else{
 			//Does nothing
 		}
@@ -1759,7 +1790,7 @@ uint8_t Wifi_Connection_Sequence(void){
 		if(temp == DATA_COMM_SUCCESS){
 			seq_state++;
 		}else if(temp == DATA_COMM_FAIL){
-			seq_state = 24;
+			seq_state = 26;
 		}else{
 			//Does nothing
 		}
@@ -1771,7 +1802,7 @@ uint8_t Wifi_Connection_Sequence(void){
 		if(temp == DATA_COMM_SUCCESS){
 			seq_state++;
 		}else if(temp == DATA_COMM_FAIL){
-			seq_state = 24;
+			seq_state = 26;
 		}else{
 			//Does nothing
 		}
@@ -1783,7 +1814,7 @@ uint8_t Wifi_Connection_Sequence(void){
 		if(temp == DATA_COMM_SUCCESS){
 			seq_state++;
 		}else if(temp == DATA_COMM_FAIL){
-			seq_state = 24;
+			seq_state = 26;
 		}else{
 			//Does nothing
 		}
@@ -1795,7 +1826,7 @@ uint8_t Wifi_Connection_Sequence(void){
 		if(temp == DATA_COMM_SUCCESS){
 			seq_state++;
 		}else if(temp == DATA_COMM_FAIL){
-			seq_state = 24;
+			seq_state = 26;
 		}else{
 			//Does nothing
 		}
@@ -1807,7 +1838,7 @@ uint8_t Wifi_Connection_Sequence(void){
 		if(temp == DATA_COMM_SUCCESS){
 			seq_state++;
 		}else if(temp == DATA_COMM_FAIL){
-			seq_state = 24;
+			seq_state = 26;
 		}else{
 			//Does nothing
 		}
@@ -1819,7 +1850,7 @@ uint8_t Wifi_Connection_Sequence(void){
 		if(temp == DATA_COMM_SUCCESS){
 			seq_state++;
 		}else if(temp == DATA_COMM_FAIL){
-			seq_state = 24;
+			seq_state = 26;
 		}else{
 			//Does nothing
 		}
@@ -1831,44 +1862,56 @@ uint8_t Wifi_Connection_Sequence(void){
 		if(temp == DATA_COMM_SUCCESS){
 			seq_state++;
 		}else if(temp == DATA_COMM_FAIL){
-			seq_state = 24;
+			seq_state = 26;
 		}else{
 			//Does nothing
 		}
 		break;
 			
 	case 12:
+	
+		temp = ESP32_Screen_Refresh_Period_Write();
+		if(temp == DATA_COMM_SUCCESS){
+			seq_state++;
+		}else if(temp == DATA_COMM_FAIL){
+			seq_state = 26;
+		}else{
+			//Does nothing
+		}
+		break;			
+			
+	case 13:
 		
 		temp = ESP32_Alarms_Status_Write();
 		if(temp == DATA_COMM_SUCCESS){
 			if(wifi_connected){
-				seq_state = 14;
+				seq_state = 15;
 			}else{
 				seq_state++;
 			}
 						
 		}else if(temp == DATA_COMM_FAIL){
-			seq_state = 24;
+			seq_state = 26;
 		}else{
 			//Does nothing
 		}
 		break;
 			
-	case 13:
+	case 14:
 	
 		temp = ESP32_WiFi_Enable();
 		if(temp == DATA_COMM_SUCCESS){
 			wifi_connected = 1;
 			seq_state++;
 		}else if(temp == DATA_COMM_FAIL){
-			seq_state = 24;
+			seq_state = 26;
 		}else{
 			//Does nothing
 		}
 		break;		
 	
 	
-	case 14:
+	case 15:
 	
 		temp = ESP32_Epaper_Screen01_Update();
 		if(temp == DATA_COMM_SUCCESS){
@@ -1877,7 +1920,7 @@ uint8_t Wifi_Connection_Sequence(void){
 			system_flags &= ~((uint32_t)1 << SHOW_MAIN_OR_ALARM_SCREEN_FLAG);
 			sei();
 		}else if(temp == DATA_COMM_FAIL){
-			seq_state = 24;
+			seq_state = 26;
 			cli();
 			system_flags &= ~((uint32_t)1 << SHOW_MAIN_OR_ALARM_SCREEN_FLAG);
 			sei();
@@ -1886,7 +1929,7 @@ uint8_t Wifi_Connection_Sequence(void){
 		}
 		break;	
 	
-	case 15:
+	case 16:
 			
 		if(system_flags & ((uint32_t)1 << SHOW_MAIN_OR_ALARM_SCREEN_FLAG)){
 			seq_state = 0;
@@ -1899,7 +1942,7 @@ uint8_t Wifi_Connection_Sequence(void){
 		break;	
 	
 		
-	case 16:
+	case 17:
 	
 		temp = ESP32_Parameters_Status_Read();
 		if(temp == DATA_COMM_SUCCESS){
@@ -1912,13 +1955,13 @@ uint8_t Wifi_Connection_Sequence(void){
 			cli();
 			system_flags &= ~((uint32_t)1 << ESP32_WEB_PARAMETERS_CHECK_FLAG);
 			sei();
-			seq_state = 24;
+			seq_state = 26;
 		}else{
 			//Does nothing
 		}
 		break;			
 		
-	case 17:
+	case 18:
 	
 		if(parameter_status_flag & (1 << PARAM_STATUS_AL1_EN_BIT)){
 			alarm_status_flags |= (1 << E1_FLAG);
@@ -1983,40 +2026,43 @@ uint8_t Wifi_Connection_Sequence(void){
 			
 		if(parameter_status_flag & (1 << PARAM_STATUS_MODE_BIT)){
 			parameter_status_flag &= ~(1 << PARAM_STATUS_MODE_BIT);
-			seq_state = 18;
+			seq_state = 19;
 		}else if(parameter_status_flag & (1 << PARAM_STATUS_D_AND_T_BIT)){
 			parameter_status_flag &= ~(1 << PARAM_STATUS_D_AND_T_BIT);
-			seq_state = 19;
+			seq_state = 20;
 		}else if(parameter_status_flag & (1 << PARAM_STATUS_AL1_SP_BIT)){
 			parameter_status_flag &= ~(1 << PARAM_STATUS_AL1_SP_BIT);
-			seq_state = 20;		
+			seq_state = 21;		
 		}else if(parameter_status_flag & (1 << PARAM_STATUS_AL2_SP_BIT)){
 			parameter_status_flag &= ~(1 << PARAM_STATUS_AL2_SP_BIT);
-			seq_state = 21;
+			seq_state = 22;
 		}else if(parameter_status_flag & (1 << PARAM_STATUS_AL3_SP_BIT)){
 			parameter_status_flag &= ~(1 << PARAM_STATUS_AL3_SP_BIT);
-			seq_state = 22;
+			seq_state = 23;
+		}else if(parameter_status_flag & (1 << PARAM_STATUS_UPDT_BIT)){
+			parameter_status_flag &= ~(1 << PARAM_STATUS_UPDT_BIT);
+			seq_state = 24;
 		}else if(parameter_status_flag & (1 << PARAM_WIFI_OFF_BIT)){
 			parameter_status_flag &= ~(1 << PARAM_WIFI_OFF_BIT);
-			seq_state = 23;
+			seq_state = 25;
 		}else{
-			seq_state = 15;
+			seq_state = 16;
 		}
 		break;		
 		
-	case 18:	
+	case 19:	
 
 		temp = ESP32_Operation_Mode_Read();
 		if(temp == DATA_COMM_SUCCESS){
-			seq_state = 17;
+			seq_state = 18;
 		}else if(temp == DATA_COMM_FAIL){
-			seq_state = 24;
+			seq_state = 26;
 		}else{
 			//Does nothing
 		}
 		break;
 		
-	case 19:
+	case 20:
 
 		temp = ESP32_Date_And_Time_Read();
 		if(temp == DATA_COMM_SUCCESS){
@@ -2025,60 +2071,73 @@ uint8_t Wifi_Connection_Sequence(void){
 			Soft_RTC1_Set_Date(new_date[0], new_date[1], new_date[2]);
 			Soft_RTC1_Set_Time(new_time[0], new_time[1], new_time[2]);
 			sei();
-			seq_state = 17;
+			seq_state = 18;
 		}else if(temp == DATA_COMM_FAIL){
-			seq_state = 24;
+			seq_state = 26;
 		}else{
 			//Does nothing
 		}
 		break;	
 		
-	case 20:	
+	case 21:	
 		
 		temp = ESP32_Alarm1_Setpoint_Read();
 		if(temp == DATA_COMM_SUCCESS){
 			cli();
 			Alarm1_Setpoint_Set(ESP32_Buffer_Alarm1_Setpoint_Get());
 			sei();
-			seq_state = 17;
+			seq_state = 18;
 		}else if(temp == DATA_COMM_FAIL){
-			seq_state = 24;
-		}else{
-			//Does nothing
-		}
-		break;	
-		
-	case 21:
-		
-		temp = ESP32_Alarm2_Setpoint_Read();
-		if(temp == DATA_COMM_SUCCESS){
-			cli();
-			Alarm2_Setpoint_Set(ESP32_Buffer_Alarm2_Setpoint_Get());
-			sei();		
-			seq_state = 17;
-		}else if(temp == DATA_COMM_FAIL){
-			seq_state = 24;
+			seq_state = 26;
 		}else{
 			//Does nothing
 		}
 		break;	
 		
 	case 22:
+		
+		temp = ESP32_Alarm2_Setpoint_Read();
+		if(temp == DATA_COMM_SUCCESS){
+			cli();
+			Alarm2_Setpoint_Set(ESP32_Buffer_Alarm2_Setpoint_Get());
+			sei();		
+			seq_state = 18;
+		}else if(temp == DATA_COMM_FAIL){
+			seq_state = 26;
+		}else{
+			//Does nothing
+		}
+		break;	
+		
+	case 23:
 	
 		temp = ESP32_Alarm3_Setpoint_Read();
 		if(temp == DATA_COMM_SUCCESS){
 			cli();
 			Alarm3_Setpoint_Set(ESP32_Buffer_Alarm3_Setpoint_Get());
 			sei();			
-			seq_state = 17;
+			seq_state = 18;
 		}else if(temp == DATA_COMM_FAIL){
-			seq_state = 24;
+			seq_state = 26;
 		}else{
 			//Does nothing
 		}
 		break;
+		
+	case 24:
 
-	case 23:
+		temp = ESP32_Screen_Refresh_Period_Read();
+		if(temp == DATA_COMM_SUCCESS){
+			Screen_Refresh_Period_Set(ESP32_Buffer_Screen_Refresh_Period_Get());
+			seq_state = 18;
+		}else if(temp == DATA_COMM_FAIL){
+			seq_state = 26;
+		}else{
+			//Does nothing
+		}
+		break;		
+
+	case 25:
 	
 		temp = ESP32_Epaper_Screen01_Update();
 		if(temp == DATA_COMM_SUCCESS){
@@ -2091,7 +2150,7 @@ uint8_t Wifi_Connection_Sequence(void){
 		break;
 
 
-	case 24:
+	case 26:
 
 		temp = 0;
 		
